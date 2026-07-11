@@ -1,6 +1,6 @@
 # Snooze Reviews
 
-Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold, launch flow, Room persistence layer, create/edit form, and read-only sleep report.
+Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold, launch flow, Room persistence layer, create/edit form, read-only sleep report, sleep history screen, shared toolbar navigation, a Stats placeholder, and Add by Date.
 
 ## Current Status
 
@@ -10,6 +10,10 @@ Implemented:
 - AndroidX splash launch flow with last-night routing
 - Java create/edit sleep-log form using XML Views and View Binding
 - Read-only sleep-log detail report with an Edit action
+- Sleep history screen with newest-first saved-log listing
+- Shared toolbar navigation for History, Stats, and Add by Date
+- Stats placeholder screen
+- Add by Date flow for choosing a completed historical night
 - Material Components theme with light and dark variants
 - Room database version 1 for sleep logs and sleep-log tags
 - Java repository with asynchronous persistence operations
@@ -22,8 +26,9 @@ Not implemented yet:
 
 - Import/export
 - Final splash artwork
-- History
-- Statistics
+- Real statistics and charts
+- Deleting logs
+- Search, filtering, and sorting
 
 ## Technical Choices
 
@@ -106,6 +111,18 @@ Detail-report formatting and duration tests are included in:
 ./gradlew testDebugUnitTest
 ```
 
+History-row formatting tests are included in:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+Navigation and Add-by-Date policy tests are included in:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -121,7 +138,7 @@ com.mhlotto.snoozereviews.data.entity
 com.mhlotto.snoozereviews.ui
 ```
 
-`SplashActivity`, `SleepLogFormActivity`, and `SleepLogDetailActivity` live in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
+`SplashActivity`, `SleepLogFormActivity`, `SleepLogDetailActivity`, `SleepHistoryActivity`, `SleepStatsActivity`, and `AddSleepByDateActivity` live in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
 
 ## Launch Flow
 
@@ -217,6 +234,64 @@ Dates are parsed from ISO `yyyy-MM-dd` and displayed with the device locale. Tim
 Known sleep-location and tag keys use localized labels from the existing UI catalog. Unknown nonblank keys are preserved and displayed with safe fallback labels such as `Unknown location (KEY)` or `Unknown tag (KEY)`. Known tags follow the form catalog order; unknown tags appear after known tags in sorted order.
 
 The detail report has loading, not-found, and retryable load-error states. Edit launches `SleepLogFormActivity.newEditIntent(...)`; after a successful edit, the report reloads the full record from Room instead of trusting only returned extras.
+
+## Sleep History
+
+`SleepHistoryActivity` lists saved logs through `SleepLogRepository.listAllSleepLogs()`. The repository and DAO ordering is authoritative: rows are shown by `night_date DESC`, newest first.
+
+History states:
+
+- Loading: indeterminate progress while the repository request is running.
+- Empty: `No sleep logs yet.` with supporting text.
+- Content: a RecyclerView of saved sleep logs.
+- Error: `Sleep history could not be loaded.` with Retry.
+
+Each row shows a localized night date, calculated duration or `Duration not available`, compact sleep and rested ratings, sleep location when recorded, and a tag preview. The tag preview shows at most three labels in the same catalog order used by the form and detail report. Additional tags are summarized as `+N`. Unknown nonblank tags are kept visible after known tags using safe fallback labels.
+
+Selecting a row opens `SleepLogDetailActivity` with the stable sleep-log ID and canonical ISO night date. The history screen refreshes when returning from detail, so edits made through the detail/form flow update row summaries and can move a log to its new newest-first position.
+
+A minimal History toolbar action is available from the detail report and the create/edit form. If the form has unsaved changes, choosing History uses the same discard confirmation as Back navigation before leaving the form.
+
+Deferred history-related features include deleting logs, search, filtering, sorting controls, real statistics, charts, and backup/restore.
+
+## Shared Navigation
+
+Normal app destinations share a toolbar overflow menu with:
+
+- History
+- Stats
+- Add by Date
+
+`SplashActivity` does not show the shared menu because it is launch-routing infrastructure. The current destination hides its own menu item, so History does not open another History screen, Stats does not open another Stats screen, and Add by Date does not open another Add by Date screen.
+
+Navigation uses normal Activity starts without clearing the task, unusual launch modes, or restarting splash. Back returns through the stack in the order screens were opened.
+
+`SleepLogFormActivity` protects unsaved changes for every shared navigation action. Clean forms navigate immediately. Dirty forms show the existing discard dialog; `Keep editing` stays on the form, and `Discard` opens the originally selected destination.
+
+## Stats
+
+`SleepStatsActivity` is a navigable placeholder. It does not query the database, calculate fake values, or show charts. The screen explains that statistics will appear after enough sleep logs have been recorded and lists planned areas such as average duration, sleep quality, rested rating, nights slept through, and common tags.
+
+## Add By Date
+
+`AddSleepByDateActivity` lets the user choose the night date for a completed historical night. The selected date means the local calendar date when sleep began.
+
+Date policy:
+
+- Defaults to yesterday in the device's local calendar and time zone.
+- Allows yesterday or earlier.
+- Rejects today and future dates.
+- Uses `LocalDate` calendar arithmetic instead of subtracting milliseconds.
+
+Continue checks the selected canonical ISO date through `SleepLogRepository.findSleepLogByNightDate(...)`.
+
+Routing outcomes:
+
+- No existing log: opens `SleepLogFormActivity.newCreateIntent(...)` with the selected ISO date.
+- Existing log: shows `A sleep log already exists for this date.` with actions to view the log or choose another date.
+- Lookup failure: shows `The selected date could not be checked.` with Retry and does not assume the date is unused.
+
+Changing the selected date clears old duplicate or error messages and invalidates stale lookup callbacks.
 
 ## Database
 

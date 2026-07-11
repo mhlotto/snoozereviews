@@ -67,6 +67,20 @@ public class LaunchActivityTest {
     }
 
     @Test
+    public void statsAndAddByDateIntentFactoriesTargetExpectedActivities() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        assertEquals(
+                new ComponentName(context, SleepStatsActivity.class),
+                SleepStatsActivity.newIntent(context).getComponent()
+        );
+        assertEquals(
+                new ComponentName(context, AddSleepByDateActivity.class),
+                AddSleepByDateActivity.newIntent(context).getComponent()
+        );
+    }
+
+    @Test
     public void formActivityDisplaysSuppliedNightDate() {
         Context context = ApplicationProvider.getApplicationContext();
 
@@ -85,6 +99,31 @@ public class LaunchActivityTest {
                 SleepLogDetailActivity.newIntent(context, 42L, "2026-07-10")
         )) {
             onView(withText("This sleep log could not be found.")).check(matches(isDisplayed()));
+        }
+    }
+
+    @Test
+    public void statsActivityDisplaysPlaceholder() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        try (ActivityScenario<SleepStatsActivity> ignored = ActivityScenario.launch(
+                SleepStatsActivity.newIntent(context)
+        )) {
+            onView(withText("Sleep statistics")).check(matches(isDisplayed()));
+            onView(withText("Statistics will appear here after enough sleep logs have been recorded."))
+                    .check(matches(isDisplayed()));
+        }
+    }
+
+    @Test
+    public void addByDateActivityDisplaysDateSelectionFlow() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        try (ActivityScenario<AddSleepByDateActivity> ignored = ActivityScenario.launch(
+                AddSleepByDateActivity.newIntent(context)
+        )) {
+            onView(withText("Add sleep by date")).check(matches(isDisplayed()));
+            onView(withText("Continue")).check(matches(isDisplayed()));
         }
     }
 

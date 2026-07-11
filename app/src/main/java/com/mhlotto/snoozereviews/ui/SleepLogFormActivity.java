@@ -10,6 +10,8 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.widget.LinearLayout;
@@ -35,6 +37,7 @@ import com.mhlotto.snoozereviews.ui.form.SleepLogFormCatalog;
 import com.mhlotto.snoozereviews.ui.form.SleepLogFormState;
 import com.mhlotto.snoozereviews.ui.form.TagCategory;
 import com.mhlotto.snoozereviews.ui.form.TimeOfDayHelper;
+import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -75,6 +78,8 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private int saveGeneration;
     private boolean isSaving;
     private boolean suppressChangeCallbacks;
+    private boolean navigationInProgress;
+    private boolean discardDialogShowing;
 
     public static Intent newCreateIntent(Context context, String nightDate) {
         Intent intent = new Intent(context, SleepLogFormActivity.class);
@@ -118,6 +123,28 @@ public class SleepLogFormActivity extends AppCompatActivity {
             repository.shutdownBackgroundExecutor();
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        navigationInProgress = false;
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_app_navigation, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        AppNavigation.Destination destination = AppNavigation.destinationForMenuItem(item.getItemId());
+        if (destination != null) {
+            openDestinationWithUnsavedProtection(destination);
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -567,6 +594,24 @@ public class SleepLogFormActivity extends AppCompatActivity {
         if (isSaving) {
             return;
         }
+        confirmDiscardIfNeeded(this::finish);
+    }
+
+    private void openDestinationWithUnsavedProtection(AppNavigation.Destination destination) {
+        if (isSaving) {
+            return;
+        }
+        confirmDiscardIfNeeded(() -> {
+            if (!navigationInProgress) {
+                navigationInProgress = AppNavigation.openDestination(this, destination);
+            }
+        });
+    }
+
+    private void confirmDiscardIfNeeded(Runnable onDiscardOrClean) {
+        if (discardDialogShowing) {
+            return;
+        }
         SleepLogFormState latest = currentState;
         if (binding.formScroll.getVisibility() == View.VISIBLE) {
             try {
@@ -576,14 +621,19 @@ public class SleepLogFormActivity extends AppCompatActivity {
             }
         }
         if (latest != null && initialState != null && latest.isDirtyComparedTo(initialState)) {
+            discardDialogShowing = true;
             new AlertDialog.Builder(this)
                     .setTitle(R.string.discard_changes_title)
                     .setMessage(R.string.discard_changes_message)
-                    .setPositiveButton(R.string.discard, (dialog, which) -> finish())
+                    .setPositiveButton(R.string.discard, (dialog, which) -> {
+                        discardDialogShowing = false;
+                        onDiscardOrClean.run();
+                    })
                     .setNegativeButton(R.string.keep_editing, null)
+                    .setOnDismissListener(dialog -> discardDialogShowing = false)
                     .show();
         } else {
-            finish();
+            onDiscardOrClean.run();
         }
     }
 

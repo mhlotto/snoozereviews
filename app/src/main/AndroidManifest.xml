@@ -11,6 +11,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SnoozeReviews">
         <activity
+            android:name=".ui.AddSleepByDateActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SleepStatsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ui.SleepHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.SleepLogDetailActivity"
             android:exported="false" />
         <activity

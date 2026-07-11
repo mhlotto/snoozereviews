@@ -21,6 +21,7 @@ import com.mhlotto.snoozereviews.databinding.ActivitySleepLogDetailBinding;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailFormatter;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailViewState;
 import com.mhlotto.snoozereviews.ui.detail.TagDisplayItem;
+import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
 
 import java.util.Locale;
 
@@ -38,6 +39,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
     private int loadGeneration;
     private boolean destroyed;
     private boolean hasLoadedReport;
+    private boolean navigationInProgress;
     private MenuItem editItem;
     private SleepLogDetailViewState currentViewState;
     private ActivityResultLauncher<Intent> editLauncher;
@@ -92,8 +94,15 @@ public class SleepLogDetailActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        navigationInProgress = false;
+    }
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_sleep_log_detail, menu);
+        getMenuInflater().inflate(R.menu.menu_app_navigation, menu);
         editItem = menu.findItem(R.id.action_edit);
         updateEditAvailability();
         return true;
@@ -103,6 +112,13 @@ public class SleepLogDetailActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_edit && hasLoadedReport) {
             editLauncher.launch(SleepLogFormActivity.newEditIntent(this, sleepLogId));
+            return true;
+        }
+        AppNavigation.Destination destination = AppNavigation.destinationForMenuItem(item.getItemId());
+        if (destination != null) {
+            if (!navigationInProgress) {
+                navigationInProgress = AppNavigation.openDestination(this, destination);
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
