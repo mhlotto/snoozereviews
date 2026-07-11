@@ -7,7 +7,8 @@ Snooze Reviews is an Android app for manually reviewing sleep quality. This repo
 Implemented:
 
 - Android application scaffold
-- Single Java launcher activity using XML Views and View Binding
+- AndroidX splash launch flow with last-night routing
+- Placeholder Java destination activities using XML Views and View Binding
 - Material Components theme with light and dark variants
 - Room database version 1 for sleep logs and sleep-log tags
 - Java repository with asynchronous persistence operations
@@ -19,8 +20,9 @@ Implemented:
 Not implemented yet:
 
 - Sleep-entry UI
+- Sleep-log detail UI
 - Import/export
-- Splash artwork
+- Final splash artwork
 - History
 - Statistics
 
@@ -81,6 +83,18 @@ The database, DAO, repository, and schema readiness tests are instrumentation te
 ./gradlew connectedDebugAndroidTest
 ```
 
+Launch-related local unit tests are included in:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+Launch-related Activity tests are instrumentation tests and require a connected device or emulator:
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -96,7 +110,35 @@ com.mhlotto.snoozereviews.data.entity
 com.mhlotto.snoozereviews.ui
 ```
 
-`MainActivity` lives in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
+`SplashActivity`, `SleepLogFormActivity`, and `SleepLogDetailActivity` live in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
+
+## Launch Flow
+
+`SplashActivity` is the only launcher Activity. It uses AndroidX SplashScreen with temporary launcher-icon artwork; final Snooze Reviews splash art will be added later.
+
+On launch, the app calculates "last night" from the device's local calendar and time zone:
+
+```text
+last night date = LocalDate.now(Clock.systemDefaultZone()).minusDays(1)
+```
+
+The result is stored and queried as canonical ISO text, `yyyy-MM-dd`. The app does not subtract 24 hours from an epoch timestamp, so daylight-saving transitions are handled as calendar changes.
+
+The splash screen remains visible until both conditions are true:
+
+- At least 2.5 seconds have elapsed using monotonic elapsed time.
+- The asynchronous `SleepLogRepository` lookup for last night's `night_date` has completed successfully.
+
+Routing outcomes:
+
+- No matching log: open `SleepLogFormActivity` for that night date.
+- Matching log: open `SleepLogDetailActivity` with the sleep-log ID and night date.
+
+After routing, `SplashActivity` finishes so Back exits from the destination instead of returning to splash.
+
+If lookup fails, the splash is released after the 2.5-second minimum and `SplashActivity` shows a Material error state with Retry. Retry repeats the local-date calculation and repository lookup without imposing another mandatory splash delay. Errors are logged for diagnostics but not shown as stack traces to the user.
+
+The destination screens are placeholders only. `SleepLogFormActivity` displays the night date and a note that the form will be implemented next. `SleepLogDetailActivity` displays the night date and a note that the report will be implemented later.
 
 ## Database
 

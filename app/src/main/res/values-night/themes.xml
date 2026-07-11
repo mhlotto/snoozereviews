@@ -12,4 +12,10 @@
         <item name="android:statusBarColor">@color/snooze_surface_dark</item>
         <item name="android:navigationBarColor">@color/snooze_surface_dark</item>
     </style>
+
+    <style name="Theme.SnoozeReviews.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/snooze_surface_dark</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="postSplashScreenTheme">@style/Theme.SnoozeReviews</item>
+    </style>
 </resources>

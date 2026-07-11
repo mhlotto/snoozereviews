@@ -49,6 +49,7 @@ dependencies {
     implementation libs.androidx.constraintlayout
     implementation libs.material
     implementation libs.room.runtime
+    implementation libs.splashscreen
 
     annotationProcessor libs.room.compiler
 

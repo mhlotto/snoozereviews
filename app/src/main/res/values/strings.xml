@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Snooze Reviews</string>
-    <string name="placeholder_sleep_logging">Sleep logging will appear here.</string>
+    <string name="splash_lookup_error_title">Couldn\'t check last night</string>
+    <string name="splash_lookup_error_message">Snooze Reviews couldn\'t check whether last night has already been logged.</string>
+    <string name="retry">Retry</string>
+    <string name="log_last_nights_sleep">Log last night\'s sleep</string>
+    <string name="last_nights_sleep">Last night\'s sleep</string>
+    <string name="sleep_form_placeholder">The sleep-entry form will be implemented next.</string>
+    <string name="sleep_detail_placeholder">The sleep report will be implemented later.</string>
+    <string name="night_date_label">Night date</string>
+    <string name="invalid_launch_data_title">Unable to open this screen</string>
+    <string name="invalid_launch_data_message">Required launch information was missing or invalid.</string>
 </resources>
