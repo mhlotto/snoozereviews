@@ -1,6 +1,6 @@
 # Snooze Reviews
 
-Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains only the initial application scaffold and development tooling.
+Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold plus the first Room persistence layer for sleep logs.
 
 ## Current Status
 
@@ -9,15 +9,16 @@ Implemented:
 - Android application scaffold
 - Single Java launcher activity using XML Views and View Binding
 - Material Components theme with light and dark variants
-- Room dependency setup and committed schema directory
-- Basic unit and instrumentation test placeholders
+- Room database version 1 for sleep logs and sleep-log tags
+- Java repository with asynchronous persistence operations
+- Room schema export and database instrumentation tests
+- Basic scaffold tests
 - Makefile developer commands
 - GitHub Actions non-device checks
 
 Not implemented yet:
 
-- Sleep logging
-- Production database schema, entities, and DAOs
+- Sleep-entry UI
 - Import/export
 - Splash artwork
 - History
@@ -34,6 +35,8 @@ Not implemented yet:
 - Requested Android permissions: none
 - Namespace/application ID: `com.mhlotto.snoozereviews`
 - Minimum SDK: 29
+- Database filename: `snooze-reviews.db`
+- Database version: 1
 
 ## Prerequisites
 
@@ -72,6 +75,12 @@ Run instrumentation tests on a connected device or emulator:
 make connected-test
 ```
 
+The database, DAO, repository, and schema readiness tests are instrumentation tests. They can also be run directly:
+
+```bash
+./gradlew connectedDebugAndroidTest
+```
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -87,6 +96,34 @@ com.mhlotto.snoozereviews.data.entity
 com.mhlotto.snoozereviews.ui
 ```
 
-`MainActivity` lives in `com.mhlotto.snoozereviews.ui`. Future Room database classes will live under `com.mhlotto.snoozereviews.data.db`.
+`MainActivity` lives in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
 
-Room schema export is configured to `app/schemas`, which is committed so future database schema changes can be reviewed. Room 2.8.4 requires at least one entity for a `@Database` class, so this scaffold intentionally omits `SnoozeReviewsDatabase` until the first real schema is introduced.
+## Database
+
+Room database version 1 is the initial production schema. It uses the file name `snooze-reviews.db`.
+
+Tables:
+
+- `sleep_logs`: one row per logged night, with an auto-generated `id`
+- `sleep_log_tags`: tag membership rows keyed by `sleep_log_id` and `tag_key`
+
+Important rules and conventions:
+
+- `night_date` stores the local date the person went to sleep as ISO text, `yyyy-MM-dd`.
+- There is a unique index on `sleep_logs.night_date`; the app does not upsert or merge duplicate nights.
+- `fell_asleep_minute` and `woke_up_minute` store nullable minutes after midnight, `0` through `1439`.
+- `slept_through_night` and `had_dreams` are nullable Boolean values: `true`, `false`, or `null`.
+- `sleep_rating` and `rested_rating` are nullable integer ratings from `1` through `5`.
+- `created_at` and `updated_at` are non-null UTC epoch milliseconds managed by the repository.
+- Tags are stored as stable string keys in `sleep_log_tags`, not as comma-separated text.
+- Unknown nonblank tag keys and sleep-location keys are preserved for forward compatibility.
+
+`SleepLogRepository` is the intended application-facing persistence entry point. Public operations run on an injected background `Executor`; the default constructor delivers callbacks on the Android main thread and does not allow main-thread database queries.
+
+Room schema export is configured to `app/schemas`. The generated version 1 schema is committed at:
+
+```text
+app/schemas/com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase/1.json
+```
+
+There are no migrations yet because version 1 is the initial schema. Future schema changes must increment the database version, add explicit migrations, and add migration tests using the existing `MigrationTestHelper` test structure.
