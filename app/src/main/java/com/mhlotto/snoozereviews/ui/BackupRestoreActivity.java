@@ -14,25 +14,26 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.android.material.color.MaterialColors;
 import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.data.backup.ImportPlan;
 import com.mhlotto.snoozereviews.data.backup.ImportPlanSummary;
 import com.mhlotto.snoozereviews.data.backup.SleepBackupService;
 import com.mhlotto.snoozereviews.data.backup.SleepBackupValidationException;
 import com.mhlotto.snoozereviews.databinding.ActivityBackupRestoreBinding;
+import com.mhlotto.snoozereviews.ui.backup.BackupFilenameFactory;
 import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
 
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.time.Clock;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 
 public class BackupRestoreActivity extends AppCompatActivity {
     private static final String TAG = "BackupRestoreActivity";
 
     private ActivityBackupRestoreBinding binding;
     private SleepBackupService backupService;
+    private BackupFilenameFactory filenameFactory;
     private ActivityResultLauncher<String> exportLauncher;
     private ActivityResultLauncher<String[]> importLauncher;
     private ImportPlan pendingImportPlan;
@@ -54,6 +55,7 @@ public class BackupRestoreActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(view -> finish());
 
         backupService = new SleepBackupService(this);
+        filenameFactory = new BackupFilenameFactory(Clock.systemDefaultZone());
         exportLauncher = registerForActivityResult(
                 new ActivityResultContracts.CreateDocument("application/json"),
                 this::handleExportUri
@@ -63,7 +65,7 @@ public class BackupRestoreActivity extends AppCompatActivity {
                 this::handleImportUri
         );
 
-        binding.exportButton.setOnClickListener(view -> exportLauncher.launch(defaultBackupFilename()));
+        binding.exportButton.setOnClickListener(view -> exportLauncher.launch(filenameFactory.defaultBackupFilename()));
         binding.importButton.setOnClickListener(view -> importLauncher.launch(new String[]{
                 "application/json",
                 "text/json",
@@ -256,7 +258,12 @@ public class BackupRestoreActivity extends AppCompatActivity {
 
     private void showMessage(String message, boolean error) {
         binding.resultMessage.setText(message);
-        binding.resultMessage.setTextColor(getColor(error ? com.google.android.material.R.color.design_default_color_error : android.R.color.holo_green_dark));
+        binding.resultMessage.setTextColor(MaterialColors.getColor(
+                binding.resultMessage,
+                error
+                        ? com.google.android.material.R.attr.colorOnSurface
+                        : com.google.android.material.R.attr.colorOnSurfaceVariant
+        ));
         binding.resultMessage.setVisibility(View.VISIBLE);
     }
 
@@ -264,8 +271,4 @@ public class BackupRestoreActivity extends AppCompatActivity {
         binding.resultMessage.setVisibility(View.GONE);
     }
 
-    private String defaultBackupFilename() {
-        String date = LocalDate.now(Clock.systemDefaultZone()).format(DateTimeFormatter.ISO_LOCAL_DATE);
-        return "snooze-reviews-backup-" + date + ".json";
-    }
 }

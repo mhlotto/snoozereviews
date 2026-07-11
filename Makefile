@@ -1,4 +1,4 @@
-.PHONY: help build debug test connected-test lint check clean install
+.PHONY: help build debug test connected-test lint check clean install visual-assets
 
 GRADLE := ./gradlew
 
@@ -12,6 +12,7 @@ help:
 	@printf "  check           Run build, unit tests, and lint\n"
 	@printf "  clean           Clean Gradle output\n"
 	@printf "  install         Install the debug build on a connected device\n"
+	@printf "  visual-assets   Generate Android visual assets from source artwork\n"
 
 build:
 	$(GRADLE) build
@@ -35,3 +36,6 @@ clean:
 
 install:
 	$(GRADLE) installDebug
+
+visual-assets:
+	./scripts/generate-visual-assets.sh

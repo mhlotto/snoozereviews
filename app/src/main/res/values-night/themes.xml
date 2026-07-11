@@ -3,10 +3,19 @@
     <style name="Theme.SnoozeReviews" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/snooze_primary_dark</item>
         <item name="colorOnPrimary">@color/snooze_on_primary_dark</item>
+        <item name="colorPrimaryContainer">@color/snooze_primary_container_dark</item>
+        <item name="colorOnPrimaryContainer">@color/snooze_on_primary_container_dark</item>
+        <item name="colorSecondary">@color/snooze_secondary_dark</item>
+        <item name="colorOnSecondary">@color/snooze_on_secondary_dark</item>
+        <item name="colorSecondaryContainer">@color/snooze_secondary_container_dark</item>
+        <item name="colorOnSecondaryContainer">@color/snooze_on_secondary_container_dark</item>
         <item name="colorSurface">@color/snooze_surface_dark</item>
         <item name="colorOnSurface">@color/snooze_on_surface_dark</item>
         <item name="colorSurfaceVariant">@color/snooze_surface_variant_dark</item>
         <item name="colorOnSurfaceVariant">@color/snooze_on_surface_variant_dark</item>
+        <item name="colorOutline">@color/snooze_outline_dark</item>
+        <item name="colorError">@color/snooze_error_dark</item>
+        <item name="colorOnError">@color/snooze_on_primary_dark</item>
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:statusBarColor">@color/snooze_surface_dark</item>
@@ -14,8 +23,8 @@
     </style>
 
     <style name="Theme.SnoozeReviews.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/snooze_surface_dark</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">@color/snooze_splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/snooze_splash_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.SnoozeReviews</item>
     </style>
 </resources>

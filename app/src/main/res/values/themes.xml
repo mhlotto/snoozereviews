@@ -3,20 +3,28 @@
     <style name="Theme.SnoozeReviews" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="colorPrimary">@color/snooze_primary</item>
         <item name="colorOnPrimary">@color/snooze_on_primary</item>
+        <item name="colorPrimaryContainer">@color/snooze_primary_container</item>
+        <item name="colorOnPrimaryContainer">@color/snooze_on_primary_container</item>
+        <item name="colorSecondary">@color/snooze_secondary</item>
+        <item name="colorOnSecondary">@color/snooze_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/snooze_secondary_container</item>
+        <item name="colorOnSecondaryContainer">@color/snooze_on_secondary_container</item>
         <item name="colorSurface">@color/snooze_surface</item>
         <item name="colorOnSurface">@color/snooze_on_surface</item>
         <item name="colorSurfaceVariant">@color/snooze_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/snooze_on_surface_variant</item>
+        <item name="colorOutline">@color/snooze_outline</item>
+        <item name="colorError">@color/snooze_error</item>
+        <item name="colorOnError">@color/snooze_on_primary</item>
         <item name="android:fontFamily">sans</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">@color/snooze_surface</item>
         <item name="android:navigationBarColor">@color/snooze_surface</item>
     </style>
 
-    <!-- Temporary launcher-icon artwork; final Snooze Reviews splash art will replace it later. -->
     <style name="Theme.SnoozeReviews.Splash" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/snooze_surface</item>
-        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenBackground">@color/snooze_splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/snooze_splash_icon</item>
         <item name="postSplashScreenTheme">@style/Theme.SnoozeReviews</item>
     </style>
 

@@ -15,6 +15,8 @@ Implemented:
 - Stats placeholder screen
 - Add by Date flow for choosing a completed historical night
 - Backup and Restore screen using versioned logical JSON documents
+- Final visual identity derived from the approved source illustration
+- Native Android splash icon, adaptive launcher icons, legacy launcher PNGs, and themed monochrome icon
 - Material Components theme with light and dark variants
 - Room database version 1 for sleep logs and sleep-log tags
 - Java repository with asynchronous persistence operations
@@ -23,9 +25,9 @@ Implemented:
 - Makefile developer commands
 - GitHub Actions non-device checks
 
-Not implemented yet:
+Deferred:
 
-- Final splash artwork
+- Final device visual QA across launcher mask implementations
 - Real statistics and charts
 - Deleting logs
 - Search, filtering, and sorting
@@ -44,6 +46,46 @@ Not implemented yet:
 - Minimum SDK: 29
 - Database filename: `snooze-reviews.db`
 - Database version: 1
+
+## Visual Identity
+
+The approved source illustration is kept at the repository root:
+
+```text
+snooze-splash-base.png
+```
+
+It is the immutable high-resolution source artwork and is not moved into Android resources or modified in place. The current source is a PNG image measuring `941 x 1672` pixels.
+
+Derived Android assets are generated with:
+
+```bash
+make visual-assets
+```
+
+or directly:
+
+```bash
+./scripts/generate-visual-assets.sh
+```
+
+The script requires ImageMagick 7 (`magick`). `pngcheck` and `oxipng` are used when installed, but they are optional.
+
+The native splash uses AndroidX SplashScreen with a solid deep-night background and a centered derived icon. The icon is cropped from the approved illustration to focus on the sleeping face, gray beard, blue-and-white nightcap, pillow, and readable `zzz`; the moon, alarm clock, distant scene details, and lower empty background are intentionally excluded at splash/icon sizes.
+
+Launcher assets include adaptive foreground/background layers for API 26+, density-specific legacy and round PNGs, and a deliberately simplified one-color VectorDrawable monochrome icon for themed launchers. The launcher icon does not include app-name text or raw full-scene artwork.
+
+The app palette is derived from the illustration:
+
+- Deep night blue: `#102846`
+- Medium moonlit blue: `#2F5F96`
+- Soft pale blue: `#DCEBFA`
+- Warm moon yellow: `#F5C95F`
+- Off-white pillow: `#F8F2E4`
+- Muted gray-blue: `#5D7188`
+- Error red: `#BA1A1A`
+
+Light and dark themes use semantic Material color roles so long forms and reports stay readable. Visual device checks for Android 12+ splash behavior, older Android splash behavior, launcher masks, themed icons, large font, and dark theme are documented in `TESTING.md`.
 
 ## Prerequisites
 
@@ -131,6 +173,8 @@ Backup codec, import-plan, and backup service tests are included in:
 ./gradlew assembleDebugAndroidTest
 ```
 
+See `TESTING.md` for the manual smoke-test, accessibility, large-font, dark-theme, and Storage Access Framework checklist for later device passes.
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -150,7 +194,7 @@ com.mhlotto.snoozereviews.ui
 
 ## Launch Flow
 
-`SplashActivity` is the only launcher Activity. It uses AndroidX SplashScreen with temporary launcher-icon artwork; final Snooze Reviews splash art will be added later.
+`SplashActivity` is the only launcher Activity. It uses AndroidX SplashScreen with the final derived splash icon and a solid deep-night background.
 
 On launch, the app calculates "last night" from the device's local calendar and time zone:
 

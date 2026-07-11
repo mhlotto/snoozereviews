@@ -1,17 +1,44 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="snooze_primary">#3F5F7F</color>
+    <color name="snooze_deep_night">#102846</color>
+    <color name="snooze_moonlit_blue">#2F5F96</color>
+    <color name="snooze_pale_blue">#DCEBFA</color>
+    <color name="snooze_moon_yellow">#F5C95F</color>
+    <color name="snooze_pillow">#F8F2E4</color>
+    <color name="snooze_gray_blue">#5D7188</color>
+    <color name="snooze_error">#BA1A1A</color>
+    <color name="snooze_error_dark">#FFB4AB</color>
+
+    <color name="snooze_primary">#174A78</color>
     <color name="snooze_on_primary">#FFFFFF</color>
-    <color name="snooze_primary_dark">#B8CBE0</color>
-    <color name="snooze_on_primary_dark">#0F1D2A</color>
-    <color name="snooze_surface">#FAFBFC</color>
-    <color name="snooze_on_surface">#1B1F23</color>
-    <color name="snooze_surface_dark">#12161B</color>
-    <color name="snooze_on_surface_dark">#E8ECF1</color>
-    <color name="snooze_surface_variant">#E4EAF0</color>
-    <color name="snooze_on_surface_variant">#4E5A66</color>
-    <color name="snooze_surface_variant_dark">#26313A</color>
-    <color name="snooze_on_surface_variant_dark">#C3CDD8</color>
-    <color name="ic_launcher_background">#3F5F7F</color>
+    <color name="snooze_primary_container">#D3E4FF</color>
+    <color name="snooze_on_primary_container">#001C35</color>
+    <color name="snooze_primary_dark">#A4C9F5</color>
+    <color name="snooze_on_primary_dark">#002C4E</color>
+    <color name="snooze_primary_container_dark">#0F3B64</color>
+    <color name="snooze_on_primary_container_dark">#D3E4FF</color>
+
+    <color name="snooze_secondary">#6D5414</color>
+    <color name="snooze_on_secondary">#FFFFFF</color>
+    <color name="snooze_secondary_container">#FEE3A2</color>
+    <color name="snooze_on_secondary_container">#231A00</color>
+    <color name="snooze_secondary_dark">#E0C37A</color>
+    <color name="snooze_on_secondary_dark">#3B2F00</color>
+    <color name="snooze_secondary_container_dark">#53450B</color>
+    <color name="snooze_on_secondary_container_dark">#FEE3A2</color>
+
+    <color name="snooze_surface">#FAFCFF</color>
+    <color name="snooze_on_surface">#171C22</color>
+    <color name="snooze_surface_dark">#101820</color>
+    <color name="snooze_on_surface_dark">#E5ECF4</color>
+    <color name="snooze_surface_variant">#E0E8F2</color>
+    <color name="snooze_on_surface_variant">#435160</color>
+    <color name="snooze_surface_variant_dark">#253341</color>
+    <color name="snooze_on_surface_variant_dark">#C3CEDA</color>
+    <color name="snooze_outline">#738192</color>
+    <color name="snooze_outline_dark">#8D9AAA</color>
+    <color name="snooze_splash_background">#102846</color>
+
+    <color name="ic_launcher_background">#102846</color>
     <color name="ic_launcher_foreground">#FFFFFF</color>
 </resources>
