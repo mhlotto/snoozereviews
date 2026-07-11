@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="snooze_primary">#3F5F7F</color>
+    <color name="snooze_on_primary">#FFFFFF</color>
+    <color name="snooze_primary_dark">#B8CBE0</color>
+    <color name="snooze_on_primary_dark">#0F1D2A</color>
+    <color name="snooze_surface">#FAFBFC</color>
+    <color name="snooze_on_surface">#1B1F23</color>
+    <color name="snooze_surface_dark">#12161B</color>
+    <color name="snooze_on_surface_dark">#E8ECF1</color>
+    <color name="snooze_surface_variant">#E4EAF0</color>
+    <color name="snooze_on_surface_variant">#4E5A66</color>
+    <color name="snooze_surface_variant_dark">#26313A</color>
+    <color name="snooze_on_surface_variant_dark">#C3CDD8</color>
+    <color name="ic_launcher_background">#3F5F7F</color>
+    <color name="ic_launcher_foreground">#FFFFFF</color>
+</resources>

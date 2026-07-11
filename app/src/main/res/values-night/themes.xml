@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.SnoozeReviews" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/snooze_primary_dark</item>
+        <item name="colorOnPrimary">@color/snooze_on_primary_dark</item>
+        <item name="colorSurface">@color/snooze_surface_dark</item>
+        <item name="colorOnSurface">@color/snooze_on_surface_dark</item>
+        <item name="colorSurfaceVariant">@color/snooze_surface_variant_dark</item>
+        <item name="colorOnSurfaceVariant">@color/snooze_on_surface_variant_dark</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/snooze_surface_dark</item>
+        <item name="android:navigationBarColor">@color/snooze_surface_dark</item>
+    </style>
+</resources>
