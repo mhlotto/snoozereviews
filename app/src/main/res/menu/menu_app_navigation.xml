@@ -13,4 +13,8 @@
         android:id="@+id/action_add_by_date"
         android:title="@string/add_by_date"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_backup_restore"
+        android:title="@string/backup_and_restore"
+        app:showAsAction="never" />
 </menu>

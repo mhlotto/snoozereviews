@@ -1,0 +1,200 @@
+package com.mhlotto.snoozereviews.data.backup;
+
+import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
+import com.mhlotto.snoozereviews.data.SleepLogWithTags;
+import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
+import com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase;
+import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
+import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
+
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.time.Clock;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class SleepBackupService {
+    public interface Callback<T> {
+        void onSuccess(T result);
+
+        void onError(Throwable error);
+    }
+
+    public static class ExportResult {
+        private final int exportedLogs;
+
+        public ExportResult(int exportedLogs) {
+            this.exportedLogs = exportedLogs;
+        }
+
+        public int getExportedLogs() {
+            return exportedLogs;
+        }
+    }
+
+    public static class ImportResult {
+        private final ImportPlanSummary summary;
+
+        public ImportResult(ImportPlanSummary summary) {
+            this.summary = summary;
+        }
+
+        public ImportPlanSummary getSummary() {
+            return summary;
+        }
+    }
+
+    private final SnoozeReviewsDatabase database;
+    private final SleepLogDao sleepLogDao;
+    private final SleepBackupCodec codec;
+    private final Executor backgroundExecutor;
+    private final Executor callbackExecutor;
+    private final Clock clock;
+
+    public SleepBackupService(Context context) {
+        this(
+                SnoozeReviewsDatabase.getInstance(context),
+                new SleepBackupCodec(),
+                Executors.newSingleThreadExecutor(),
+                new MainThreadExecutor(),
+                Clock.systemUTC()
+        );
+    }
+
+    public SleepBackupService(
+            SnoozeReviewsDatabase database,
+            SleepBackupCodec codec,
+            Executor backgroundExecutor,
+            Executor callbackExecutor,
+            Clock clock
+    ) {
+        this.database = database;
+        this.sleepLogDao = database.sleepLogDao();
+        this.codec = codec;
+        this.backgroundExecutor = backgroundExecutor;
+        this.callbackExecutor = callbackExecutor;
+        this.clock = clock;
+    }
+
+    public void shutdownBackgroundExecutor() {
+        if (backgroundExecutor instanceof ExecutorService) {
+            ((ExecutorService) backgroundExecutor).shutdown();
+        }
+    }
+
+    public void exportBackup(OutputStream outputStream, Callback<ExportResult> callback) {
+        execute(callback, () -> {
+            try (OutputStream stream = outputStream) {
+                SleepBackupDocument document = buildExportDocument();
+                codec.write(document, stream);
+                return new ExportResult(document.getRecords().size());
+            }
+        });
+    }
+
+    public void parseImportPlan(InputStream inputStream, Callback<ImportPlan> callback) {
+        execute(callback, () -> {
+            try (InputStream stream = inputStream) {
+                SleepBackupDocument document = codec.parse(stream);
+                return new ImportPlan(document, calculateSummary(document));
+            }
+        });
+    }
+
+    public void applyImportPlan(ImportPlan plan, Callback<ImportResult> callback) {
+        execute(callback, () -> {
+            validateDocumentUniqueness(plan.getDocument());
+            database.runInTransaction(() -> {
+                for (SleepBackupRecord record : plan.getDocument().getRecords()) {
+                    SleepLogEntity imported = record.getSleepLog();
+                    SleepLogWithTags existing = sleepLogDao.findByNightDate(imported.getNightDate());
+                    if (existing == null) {
+                        imported.setId(0L);
+                        sleepLogDao.createLogWithTags(imported, record.getTagKeys());
+                    } else {
+                        imported.setId(existing.getSleepLog().getId());
+                        sleepLogDao.updateLogWithTags(imported, record.getTagKeys());
+                    }
+                }
+            });
+            return new ImportResult(plan.getSummary());
+        });
+    }
+
+    SleepBackupDocument buildExportDocument() {
+        List<SleepLogWithTags> logs = sleepLogDao.listAllNewestFirst();
+        List<SleepBackupRecord> records = new ArrayList<>(logs.size());
+        for (SleepLogWithTags logWithTags : logs) {
+            List<String> tagKeys = new ArrayList<>();
+            for (SleepLogTagEntity tag : logWithTags.getTags()) {
+                tagKeys.add(tag.getTagKey());
+            }
+            records.add(new SleepBackupRecord(logWithTags.getSleepLog(), tagKeys));
+        }
+        return new SleepBackupDocument(
+                SleepBackupDocument.DATABASE_VERSION,
+                clock.instant(),
+                records
+        );
+    }
+
+    public ImportPlanSummary calculateSummary(SleepBackupDocument document) throws SleepBackupValidationException {
+        validateDocumentUniqueness(document);
+        Set<String> importedDates = new HashSet<>();
+        for (SleepBackupRecord record : document.getRecords()) {
+            importedDates.add(record.getNightDate());
+        }
+
+        Set<String> localDates = new HashSet<>();
+        for (SleepLogWithTags local : sleepLogDao.listAllNewestFirst()) {
+            localDates.add(local.getSleepLog().getNightDate());
+        }
+
+        return ImportPlanSummaryCalculator.calculate(importedDates, localDates);
+    }
+
+    private void validateDocumentUniqueness(SleepBackupDocument document) throws SleepBackupValidationException {
+        Set<String> nightDates = new HashSet<>();
+        for (SleepBackupRecord record : document.getRecords()) {
+            if (!nightDates.add(record.getNightDate())) {
+                throw new SleepBackupValidationException("Backup contains duplicate night dates.");
+            }
+        }
+    }
+
+    private <T> void execute(Callback<T> callback, Operation<T> operation) {
+        backgroundExecutor.execute(() -> {
+            try {
+                T result = operation.run();
+                if (callback != null) {
+                    callbackExecutor.execute(() -> callback.onSuccess(result));
+                }
+            } catch (Throwable throwable) {
+                if (callback != null) {
+                    callbackExecutor.execute(() -> callback.onError(throwable));
+                }
+            }
+        });
+    }
+
+    private interface Operation<T> {
+        T run() throws Exception;
+    }
+
+    private static class MainThreadExecutor implements Executor {
+        private final Handler handler = new Handler(Looper.getMainLooper());
+
+        @Override
+        public void execute(Runnable command) {
+            handler.post(command);
+        }
+    }
+}

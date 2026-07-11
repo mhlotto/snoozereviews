@@ -13,6 +13,7 @@ public class AppNavigationTest {
         assertEquals(AppNavigation.Destination.HISTORY, AppNavigation.destinationForMenuItem(R.id.action_history));
         assertEquals(AppNavigation.Destination.STATS, AppNavigation.destinationForMenuItem(R.id.action_stats));
         assertEquals(AppNavigation.Destination.ADD_BY_DATE, AppNavigation.destinationForMenuItem(R.id.action_add_by_date));
+        assertEquals(AppNavigation.Destination.BACKUP_RESTORE, AppNavigation.destinationForMenuItem(R.id.action_backup_restore));
     }
 
     @Test
@@ -25,5 +26,6 @@ public class AppNavigationTest {
         assertEquals(R.id.action_history, AppNavigation.menuItemIdForDestination(AppNavigation.Destination.HISTORY));
         assertEquals(R.id.action_stats, AppNavigation.menuItemIdForDestination(AppNavigation.Destination.STATS));
         assertEquals(R.id.action_add_by_date, AppNavigation.menuItemIdForDestination(AppNavigation.Destination.ADD_BY_DATE));
+        assertEquals(R.id.action_backup_restore, AppNavigation.menuItemIdForDestination(AppNavigation.Destination.BACKUP_RESTORE));
     }
 }

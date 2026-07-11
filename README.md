@@ -1,6 +1,6 @@
 # Snooze Reviews
 
-Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold, launch flow, Room persistence layer, create/edit form, read-only sleep report, sleep history screen, shared toolbar navigation, a Stats placeholder, and Add by Date.
+Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold, launch flow, Room persistence layer, create/edit form, read-only sleep report, sleep history screen, shared toolbar navigation, a Stats placeholder, Add by Date, and logical JSON backup/restore.
 
 ## Current Status
 
@@ -11,9 +11,10 @@ Implemented:
 - Java create/edit sleep-log form using XML Views and View Binding
 - Read-only sleep-log detail report with an Edit action
 - Sleep history screen with newest-first saved-log listing
-- Shared toolbar navigation for History, Stats, and Add by Date
+- Shared toolbar navigation for History, Stats, Add by Date, and Backup and Restore
 - Stats placeholder screen
 - Add by Date flow for choosing a completed historical night
+- Backup and Restore screen using versioned logical JSON documents
 - Material Components theme with light and dark variants
 - Room database version 1 for sleep logs and sleep-log tags
 - Java repository with asynchronous persistence operations
@@ -24,11 +25,11 @@ Implemented:
 
 Not implemented yet:
 
-- Import/export
 - Final splash artwork
 - Real statistics and charts
 - Deleting logs
 - Search, filtering, and sorting
+- Cloud sync, encryption, and automatic backups
 
 ## Technical Choices
 
@@ -123,6 +124,13 @@ Navigation and Add-by-Date policy tests are included in:
 ./gradlew testDebugUnitTest
 ```
 
+Backup codec, import-plan, and backup service tests are included in:
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew assembleDebugAndroidTest
+```
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -138,7 +146,7 @@ com.mhlotto.snoozereviews.data.entity
 com.mhlotto.snoozereviews.ui
 ```
 
-`SplashActivity`, `SleepLogFormActivity`, `SleepLogDetailActivity`, `SleepHistoryActivity`, `SleepStatsActivity`, and `AddSleepByDateActivity` live in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
+`SplashActivity`, `SleepLogFormActivity`, `SleepLogDetailActivity`, `SleepHistoryActivity`, `SleepStatsActivity`, `AddSleepByDateActivity`, and `BackupRestoreActivity` live in `com.mhlotto.snoozereviews.ui`. Room entities live under `com.mhlotto.snoozereviews.data.entity`, DAOs under `com.mhlotto.snoozereviews.data.dao`, and `SnoozeReviewsDatabase` under `com.mhlotto.snoozereviews.data.db`.
 
 ## Launch Flow
 
@@ -252,7 +260,7 @@ Selecting a row opens `SleepLogDetailActivity` with the stable sleep-log ID and 
 
 A minimal History toolbar action is available from the detail report and the create/edit form. If the form has unsaved changes, choosing History uses the same discard confirmation as Back navigation before leaving the form.
 
-Deferred history-related features include deleting logs, search, filtering, sorting controls, real statistics, charts, and backup/restore.
+Deferred history-related features include deleting logs, search, filtering, sorting controls, real statistics, and charts.
 
 ## Shared Navigation
 
@@ -261,8 +269,9 @@ Normal app destinations share a toolbar overflow menu with:
 - History
 - Stats
 - Add by Date
+- Backup and Restore
 
-`SplashActivity` does not show the shared menu because it is launch-routing infrastructure. The current destination hides its own menu item, so History does not open another History screen, Stats does not open another Stats screen, and Add by Date does not open another Add by Date screen.
+`SplashActivity` does not show the shared menu because it is launch-routing infrastructure. The current destination hides its own menu item, so History does not open another History screen, Stats does not open another Stats screen, Add by Date does not open another Add by Date screen, and Backup and Restore does not open another Backup and Restore screen.
 
 Navigation uses normal Activity starts without clearing the task, unusual launch modes, or restarting splash. Back returns through the stack in the order screens were opened.
 
@@ -292,6 +301,74 @@ Routing outcomes:
 - Lookup failure: shows `The selected date could not be checked.` with Retry and does not assume the date is unused.
 
 Changing the selected date clears old duplicate or error messages and invalidates stale lookup callbacks.
+
+## Backup And Restore
+
+`BackupRestoreActivity` exports and imports logical Snooze Reviews backup documents. It does not copy the Room SQLite file, WAL files, shared-memory files, Room schema files, or local database IDs. Logical JSON backups are used because raw SQLite files are tied to schema and SQLite implementation details and can miss active WAL state.
+
+The screen uses Android's Storage Access Framework:
+
+- Export uses a create-document flow with MIME type `application/json`.
+- Import uses an open-document flow accepting JSON-oriented MIME types.
+- No storage permission is requested.
+- The app uses `ContentResolver` streams and does not treat document URIs as filesystem paths.
+
+Backup files may contain private sleep details. The app does not upload, share, or log backup contents.
+
+Current backup format:
+
+```json
+{
+  "format": "snooze-reviews-backup",
+  "version": 1,
+  "databaseVersion": 1,
+  "exportedAt": "2026-07-11T14:30:00Z",
+  "logs": []
+}
+```
+
+The logical backup version is independent from the Room database version. Version `1` is currently supported. Newer versions are rejected until an explicit parser is added.
+
+Each exported log includes:
+
+- `nightDate`
+- `sleepLocation`
+- `fellAsleepMinute`
+- `wokeUpMinute`
+- `sleptThroughNight`
+- `hadDreams`
+- `sleepRating`
+- `restedRating`
+- `awakeningCount`
+- `notes`
+- `createdAt`
+- `updatedAt`
+- `tags`
+
+Room IDs are not exported. `nightDate` is the logical record identity. Tags are stored as arrays on each log, not comma-separated text. Unknown valid location and tag keys are preserved.
+
+Export output is deterministic apart from `exportedAt`: logs are sorted by `nightDate` ascending, tag keys are sorted lexicographically, JSON is pretty-printed with two-space indentation, and the document ends with a newline. Exporting zero logs is valid.
+
+Import is a merge, not a replace-all restore:
+
+- Imported dates replace matching local dates.
+- Imported dates not present locally are inserted.
+- Local dates not present in the backup remain unchanged.
+
+For a matching date, the local Room ID is preserved while user data fields, tags, `createdAt`, and `updatedAt` are replaced with imported values. New records receive new local Room IDs.
+
+Import validates the whole document before database modification. Validation covers the format marker, backup version, exported timestamp, record count, duplicate imported night dates, field types, date format, minute/rating/count ranges, timestamp ordering, and tag keys. Unknown extra JSON fields are ignored for supported versions. Future `nightDate` values are not rejected during backup import solely because they are future dates.
+
+Before applying an import, the app calculates a confirmation summary showing total imported records, new records, matching dates that will be replaced, and local-only records that will remain unchanged. The import transaction begins only after confirmation.
+
+The complete import is applied in one Room transaction. If any insert, update, constraint, or tag operation fails, the transaction rolls back and no partial changes remain.
+
+Safety limits:
+
+- Maximum backup size: 25 MiB
+- Maximum log records: 100,000
+
+Deferred backup-related features include cloud sync, automatic scheduled backups, encryption/password protection, direct sharing, raw database copying, and future backup-format migrations.
 
 ## Database
 

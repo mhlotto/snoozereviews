@@ -78,6 +78,10 @@ public class LaunchActivityTest {
                 new ComponentName(context, AddSleepByDateActivity.class),
                 AddSleepByDateActivity.newIntent(context).getComponent()
         );
+        assertEquals(
+                new ComponentName(context, BackupRestoreActivity.class),
+                BackupRestoreActivity.newIntent(context).getComponent()
+        );
     }
 
     @Test
@@ -124,6 +128,19 @@ public class LaunchActivityTest {
         )) {
             onView(withText("Add sleep by date")).check(matches(isDisplayed()));
             onView(withText("Continue")).check(matches(isDisplayed()));
+        }
+    }
+
+    @Test
+    public void backupRestoreActivityDisplaysExportAndImportActions() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        try (ActivityScenario<BackupRestoreActivity> ignored = ActivityScenario.launch(
+                BackupRestoreActivity.newIntent(context)
+        )) {
+            onView(withText("Backup and Restore")).check(matches(isDisplayed()));
+            onView(withText("Export backup")).check(matches(isDisplayed()));
+            onView(withText("Import backup")).check(matches(isDisplayed()));
         }
     }
 
