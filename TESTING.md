@@ -1,5 +1,7 @@
 # Snooze Reviews Testing
 
+Feature behavior is summarized in [docs/FEATURES.md](docs/FEATURES.md). Backup behavior is documented in [docs/BACKUP_AND_RESTORE.md](docs/BACKUP_AND_RESTORE.md), and visual asset details are documented in [docs/VISUALS.md](docs/VISUALS.md).
+
 ## Automated Checks
 
 Run local non-device checks:
@@ -83,3 +85,4 @@ Use this checklist for a later visual device pass. The current automated workflo
 - Export uses Android's document creation flow; no storage permission is required.
 - Import uses Android's document opening flow; no file path assumptions should be made.
 - Logical JSON backups should not be confused with raw SQLite database files.
+- Detailed backup validation, merge, and rollback behavior is documented in [docs/BACKUP_AND_RESTORE.md](docs/BACKUP_AND_RESTORE.md).
