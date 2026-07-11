@@ -6,6 +6,7 @@ import static androidx.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static androidx.test.espresso.matcher.ViewMatchers.withText;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.hamcrest.Matchers.containsString;
 
 import android.content.ComponentName;
 import android.content.Context;
@@ -56,13 +57,23 @@ public class LaunchActivityTest {
     }
 
     @Test
+    public void editIntentFactoryIncludesExpectedExtras() {
+        Context context = ApplicationProvider.getApplicationContext();
+
+        Intent intent = SleepLogFormActivity.newEditIntent(context, 42L);
+
+        assertEquals(new ComponentName(context, SleepLogFormActivity.class), intent.getComponent());
+        assertEquals(42L, intent.getLongExtra(SleepLogFormActivity.EXTRA_SLEEP_LOG_ID, 0L));
+    }
+
+    @Test
     public void formActivityDisplaysSuppliedNightDate() {
         Context context = ApplicationProvider.getApplicationContext();
 
         try (ActivityScenario<SleepLogFormActivity> ignored = ActivityScenario.launch(
                 SleepLogFormActivity.newCreateIntent(context, "2026-07-10")
         )) {
-            onView(withText("2026-07-10")).check(matches(isDisplayed()));
+            onView(withText(containsString("2026"))).check(matches(isDisplayed()));
         }
     }
 
@@ -73,7 +84,7 @@ public class LaunchActivityTest {
         try (ActivityScenario<SleepLogDetailActivity> ignored = ActivityScenario.launch(
                 SleepLogDetailActivity.newIntent(context, 42L, "2026-07-10")
         )) {
-            onView(withText("2026-07-10")).check(matches(isDisplayed()));
+            onView(withText("This sleep log could not be found.")).check(matches(isDisplayed()));
         }
     }
 

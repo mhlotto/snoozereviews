@@ -1,6 +1,6 @@
 # Snooze Reviews
 
-Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold plus the first Room persistence layer for sleep logs.
+Snooze Reviews is an Android app for manually reviewing sleep quality. This repository currently contains the Android scaffold, launch flow, Room persistence layer, create/edit form, and read-only sleep report.
 
 ## Current Status
 
@@ -8,7 +8,8 @@ Implemented:
 
 - Android application scaffold
 - AndroidX splash launch flow with last-night routing
-- Placeholder Java destination activities using XML Views and View Binding
+- Java create/edit sleep-log form using XML Views and View Binding
+- Read-only sleep-log detail report with an Edit action
 - Material Components theme with light and dark variants
 - Room database version 1 for sleep logs and sleep-log tags
 - Java repository with asynchronous persistence operations
@@ -19,8 +20,6 @@ Implemented:
 
 Not implemented yet:
 
-- Sleep-entry UI
-- Sleep-log detail UI
 - Import/export
 - Final splash artwork
 - History
@@ -95,6 +94,18 @@ Launch-related Activity tests are instrumentation tests and require a connected 
 ./gradlew connectedDebugAndroidTest
 ```
 
+Form-related local unit tests are also included in:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
+Detail-report formatting and duration tests are included in:
+
+```bash
+./gradlew testDebugUnitTest
+```
+
 ## Android Studio
 
 Open this directory in Android Studio. Let Android Studio sync the Gradle project, then run the `app` configuration on a device or emulator.
@@ -138,7 +149,74 @@ After routing, `SplashActivity` finishes so Back exits from the destination inst
 
 If lookup fails, the splash is released after the 2.5-second minimum and `SplashActivity` shows a Material error state with Retry. Retry repeats the local-date calculation and repository lookup without imposing another mandatory splash delay. Errors are logged for diagnostics but not shown as stack traces to the user.
 
-The destination screens are placeholders only. `SleepLogFormActivity` displays the night date and a note that the form will be implemented next. `SleepLogDetailActivity` displays the night date and a note that the report will be implemented later.
+`SleepLogFormActivity` is the real create/edit form. `SleepLogDetailActivity` loads the saved record by ID and renders a read-only report.
+
+## Sleep Log Form
+
+`SleepLogFormActivity` supports two explicit modes:
+
+- Create mode: launched with `newCreateIntent(context, nightDate)`, pre-fills the supplied ISO night date, and opens the detail placeholder after a successful save.
+- Edit mode: launched with `newEditIntent(context, sleepLogId)`, loads the existing log through `SleepLogRepository`, and finishes with `RESULT_OK` after a successful update.
+
+Implemented fields:
+
+- Night date
+- Optional sleep location
+- Optional fell-asleep and woke-up times
+- Optional tri-state questions for slept-through-night and had-dreams
+- Optional 1-through-5 sleep and rested ratings
+- Optional awakening count
+- Optional descriptive tags
+- Optional multiline notes
+
+Night dates are selected with a local-calendar date picker. The selected value is stored internally as ISO `yyyy-MM-dd`, displayed in a localized date format, and cannot be later than the device's current local date. Today and past dates are allowed.
+
+Times are selected with a time picker that respects the device 12-hour or 24-hour preference. Stored values are nullable minutes after midnight from `0` through `1439`. Clearing a time stores `null`.
+
+Tri-state questions preserve all database states:
+
+- Yes: `true`
+- No: `false`
+- Not answered: `null`
+
+Ratings use selectable values `1` through `5` plus a `Not rated` state that stores `null`. Awakening count is optional; empty input stores `null`, and invalid or negative input shows a field error.
+
+Sleep locations and tags store stable keys, not display labels. Unknown nonblank keys loaded from existing records are displayed as fallback choices and preserved unless the user clears or replaces them. Tags are stored as rows in `sleep_log_tags`, not comma-separated text.
+
+Saving uses `SleepLogRepository` asynchronously. Save is disabled while a request is in progress. Create returns the generated ID, sets `RESULT_OK`, opens the detail report, and finishes. Edit preserves the existing ID, lets the repository preserve `created_at` and refresh `updated_at`, sets `RESULT_OK`, and finishes.
+
+Duplicate night dates are rejected by the existing unique `night_date` constraint. The form shows a specific duplicate-date message and preserves the user's entered values.
+
+Unsaved changes are tracked against the initial create state or the loaded edit state. Toolbar Back and system Back show a Material confirmation dialog with `Keep editing` and `Discard` when changes are present.
+
+## Sleep Report
+
+`SleepLogDetailActivity` accepts a sleep-log ID and night-date placeholder, then loads the authoritative record through `SleepLogRepository.findSleepLogById(...)`. The ID is authoritative; the loaded database date is what the report ultimately displays.
+
+Report sections:
+
+- Summary: localized night date, fell-asleep time, wake time, calculated duration, and sleep location
+- Ratings: sleep quality and rested-after-waking ratings
+- Sleep details: slept-through-night, dreams, and awakening count
+- Descriptive tags: noninteractive chips for selected tags
+- Notes: multiline notes text
+
+Missing-value policy:
+
+- Missing times, location, and awakening count show `Not recorded`.
+- Missing duration inputs show `Not available`.
+- Nullable Boolean answers show `Yes`, `No`, or `Not answered`.
+- Missing ratings show `Not rated`.
+- Empty tags show `No descriptive tags recorded.`
+- Empty notes show `No notes recorded.`
+
+Duration is calculated in memory only and is never stored in Room. If wake time is greater than or equal to sleep time, duration is `wake - sleep`. If wake time is earlier, the report treats it as crossing midnight: `(1440 - sleep) + wake`.
+
+Dates are parsed from ISO `yyyy-MM-dd` and displayed with the device locale. Times are stored as minutes after midnight and displayed with the device 12-hour or 24-hour preference.
+
+Known sleep-location and tag keys use localized labels from the existing UI catalog. Unknown nonblank keys are preserved and displayed with safe fallback labels such as `Unknown location (KEY)` or `Unknown tag (KEY)`. Known tags follow the form catalog order; unknown tags appear after known tags in sorted order.
+
+The detail report has loading, not-found, and retryable load-error states. Edit launches `SleepLogFormActivity.newEditIntent(...)`; after a successful edit, the report reloads the full record from Room instead of trusting only returned extras.
 
 ## Database
 
