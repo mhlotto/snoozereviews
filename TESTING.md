@@ -51,15 +51,20 @@ Use this checklist for later device testing. Do not mark items complete unless t
 23. Confirm old logs with removed custom tags still display the tag.
 24. Confirm detail reports group selected tags under nonempty category headings.
 25. Confirm orphaned and unknown selected tags appear under `Other`.
-26. Confirm history rows still use compact tag previews.
-27. Export and import a version 2 backup with active and removed custom tags.
-28. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
-29. Rotate during loading, editing, Settings, and backup/import operations.
-30. Test dark theme.
-31. Test increased font size.
-32. Test TalkBack labels where available.
-33. Test Android 12+ splash behavior.
-34. Test pre-Android 12 splash behavior if an older device is available.
+26. Toggle Had dreams Yes -> enter dream details -> No -> Yes and confirm text returns.
+27. Save dream details, edit them, then save No and confirm they are cleared.
+28. Rotate with visible and hidden dream details and confirm text is preserved.
+29. Confirm detail reports show dream details only when Had dreams is Yes.
+30. Confirm history rows still use compact tag previews and do not show dream text.
+31. Export and import a version 3 backup with dream details and custom tags.
+32. Import version 1 and 2 backups and confirm dream details default to empty.
+33. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
+34. Rotate during loading, editing, Settings, and backup/import operations.
+35. Test dark theme.
+36. Test increased font size.
+37. Test TalkBack labels where available.
+38. Test Android 12+ splash behavior.
+39. Test pre-Android 12 splash behavior if an older device is available.
 27. Confirm the launcher icon remains recognizable under circle, rounded-square, squircle, and OEM masks.
 28. Confirm the themed monochrome icon is legible where themed icons are enabled.
 29. Confirm startup has no white flash before or after the native splash.

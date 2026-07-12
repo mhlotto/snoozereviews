@@ -65,6 +65,29 @@ public class SleepLogDetailFormatterTest {
     }
 
     @Test
+    public void dreamDetailsShowOnlyForYes() {
+        SleepLogEntity yes = baseEntity();
+        yes.setHadDreams(Boolean.TRUE);
+        yes.setDreamDetails("Forest\nPath");
+        SleepLogDetailViewState yesState = formatter.format(value(yes));
+        assertTrue(yesState.shouldShowDreamDetails());
+        assertEquals("Forest\nPath", yesState.getDreamDetails());
+
+        SleepLogEntity yesEmpty = baseEntity();
+        yesEmpty.setHadDreams(Boolean.TRUE);
+        SleepLogDetailViewState emptyState = formatter.format(value(yesEmpty));
+        assertTrue(emptyState.shouldShowDreamDetails());
+        assertEquals("No dream details recorded.", emptyState.getDreamDetails());
+
+        SleepLogEntity no = baseEntity();
+        no.setHadDreams(Boolean.FALSE);
+        no.setDreamDetails("Hidden");
+        SleepLogDetailViewState noState = formatter.format(value(no));
+        assertEquals(false, noState.shouldShowDreamDetails());
+        assertEquals(null, noState.getDreamDetails());
+    }
+
+    @Test
     public void ratingsFormatCorrectlyAndNullRatingsAreNotRated() {
         SleepLogEntity entity = baseEntity();
         entity.setSleepRating(4);
@@ -147,6 +170,7 @@ public class SleepLogDetailFormatterTest {
             if (resId == R.string.not_answered) return "Not answered";
             if (resId == R.string.not_rated) return "Not rated";
             if (resId == R.string.no_notes_recorded) return "No notes recorded.";
+            if (resId == R.string.no_dream_details_recorded) return "No dream details recorded.";
             if (resId == R.string.answer_yes) return "Yes";
             if (resId == R.string.answer_no) return "No";
             if (resId == R.string.location_bed) return "Bed";

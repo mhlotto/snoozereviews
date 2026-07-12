@@ -23,7 +23,7 @@ import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
                 CustomSleepLocationEntity.class,
                 CustomSleepTagEntity.class
         },
-        version = 3,
+        version = 4,
         exportSchema = true
 )
 public abstract class SnoozeReviewsDatabase extends RoomDatabase {
@@ -64,6 +64,13 @@ public abstract class SnoozeReviewsDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_3_4 = new Migration(3, 4) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("ALTER TABLE `sleep_logs` ADD COLUMN `dream_details` TEXT");
+        }
+    };
+
     private static volatile SnoozeReviewsDatabase instance;
 
     public abstract SleepLogDao sleepLogDao();
@@ -81,7 +88,7 @@ public abstract class SnoozeReviewsDatabase extends RoomDatabase {
                                     SnoozeReviewsDatabase.class,
                                     DATABASE_NAME
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .build();
                 }
             }

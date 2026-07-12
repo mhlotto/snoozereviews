@@ -2,6 +2,7 @@ package com.mhlotto.snoozereviews.data.backup;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -27,8 +28,8 @@ public class SleepBackupCodecTest {
         String json = codec.serialize(document());
 
         assertTrue(json.contains("\"format\": \"snooze-reviews-backup\""));
-        assertTrue(json.contains("\"version\": 2"));
-        assertTrue(json.contains("\"databaseVersion\": 3"));
+        assertTrue(json.contains("\"version\": 3"));
+        assertTrue(json.contains("\"databaseVersion\": 4"));
         assertTrue(json.contains("\"customTags\": []"));
         assertTrue(json.contains("\"logs\": []"));
         assertTrue(json.endsWith("\n"));
@@ -43,6 +44,7 @@ public class SleepBackupCodecTest {
         full.setWokeUpMinute(435);
         full.setSleptThroughNight(false);
         full.setHadDreams(true);
+        full.setDreamDetails("Dream line\nCafé");
         full.setSleepRating(4);
         full.setRestedRating(3);
         full.setAwakeningCount(2);
@@ -58,6 +60,7 @@ public class SleepBackupCodecTest {
         assertTrue(json.contains("\"sleepLocation\": \"BED\""));
         assertTrue(json.contains("\"sleptThroughNight\": false"));
         assertTrue(json.contains("\"hadDreams\": true"));
+        assertTrue(json.contains("\"dreamDetails\": \"Dream line\\nCafé\""));
         assertTrue(json.contains("Line one\\nLine two"));
         assertFalse(json.contains("\"id\""));
     }
@@ -80,6 +83,7 @@ public class SleepBackupCodecTest {
         assertEquals("2026-07-10", parsed.getRecords().get(0).getNightDate());
         assertEquals(Collections.singletonList("UNKNOWN_TAG"), parsed.getRecords().get(0).getTagKeys());
         assertEquals(0, parsed.getCustomTags().size());
+        assertNull(parsed.getRecords().get(0).getSleepLog().getDreamDetails());
     }
 
     @Test
@@ -132,6 +136,22 @@ public class SleepBackupCodecTest {
     }
 
     @Test
+    public void roundTripsVersionThreeDreamDetailsAndRejectsInconsistentDreams() throws Exception {
+        SleepLogEntity entity = entity("2026-07-10");
+        entity.setHadDreams(Boolean.TRUE);
+        entity.setDreamDetails("Forest\n雪");
+
+        SleepBackupRecord record = codec.parse(codec.serialize(document(new SleepBackupRecord(entity, Collections.emptyList()))))
+                .getRecords()
+                .get(0);
+
+        assertEquals("Forest\n雪", record.getSleepLog().getDreamDetails());
+        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"hadDreams\":false,\"dreamDetails\":\"Hidden\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
+        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"hadDreams\":null,\"dreamDetails\":\"Hidden\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
+        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"hadDreams\":true,\"dreamDetails\":\"" + repeat("a", com.mhlotto.snoozereviews.data.SleepLogValidator.MAX_DREAM_DETAILS_CHARS + 1) + "\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
+    }
+
+    @Test
     public void ignoresUnknownExtraFields() throws Exception {
         String json = codec.serialize(document()).replace("\"logs\": []", "\"extra\": true,\n  \"logs\": []");
 
@@ -143,7 +163,7 @@ public class SleepBackupCodecTest {
         assertInvalid("not json");
         assertInvalid("{\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"wrong\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
-        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":3,\"databaseVersion\":3,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"customTags\":[],\"logs\":[]}");
+        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":4,\"databaseVersion\":4,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"customTags\":[],\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":0,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":0,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"bad\",\"logs\":[]}");
@@ -192,7 +212,7 @@ public class SleepBackupCodecTest {
     }
 
     private SleepBackupDocument document(SleepBackupRecord... records) {
-        return new SleepBackupDocument(3, Instant.parse("2026-07-11T14:30:00Z"), Arrays.asList(records));
+        return new SleepBackupDocument(4, Instant.parse("2026-07-11T14:30:00Z"), Arrays.asList(records));
     }
 
     private SleepLogEntity entity(String nightDate) {
@@ -208,7 +228,7 @@ public class SleepBackupCodecTest {
     }
 
     private String base(String tail) {
-        return base(tail, 2, 3);
+        return base(tail, 3, 4);
     }
 
     private String base(String tail, int version, int databaseVersion) {
@@ -222,5 +242,13 @@ public class SleepBackupCodecTest {
         } catch (SleepBackupValidationException expected) {
             assertTrue(expected.getMessage().length() > 0);
         }
+    }
+
+    private String repeat(String value, int count) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            builder.append(value);
+        }
+        return builder.toString();
     }
 }

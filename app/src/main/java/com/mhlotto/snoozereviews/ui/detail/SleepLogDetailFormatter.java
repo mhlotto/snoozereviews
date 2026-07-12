@@ -65,6 +65,8 @@ public class SleepLogDetailFormatter {
                 formatLocation(log.getSleepLocation()),
                 formatBoolean(log.getSleptThroughNight()),
                 formatBoolean(log.getHadDreams()),
+                Boolean.TRUE.equals(log.getHadDreams()),
+                formatDreamDetails(log.getHadDreams(), log.getDreamDetails()),
                 formatRating(log.getSleepRating()),
                 formatRating(log.getRestedRating()),
                 formatAwakeningCount(log.getAwakeningCount()),
@@ -141,6 +143,16 @@ public class SleepLogDetailFormatter {
         return labels.getString(value
                 ? com.mhlotto.snoozereviews.R.string.answer_yes
                 : com.mhlotto.snoozereviews.R.string.answer_no);
+    }
+
+    private String formatDreamDetails(Boolean hadDreams, String dreamDetails) {
+        if (!Boolean.TRUE.equals(hadDreams)) {
+            return null;
+        }
+        if (dreamDetails == null || dreamDetails.trim().isEmpty()) {
+            return labels.getString(com.mhlotto.snoozereviews.R.string.no_dream_details_recorded);
+        }
+        return dreamDetails;
     }
 
     private String formatRating(Integer rating) {

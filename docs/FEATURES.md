@@ -33,6 +33,7 @@ Supported fields:
 - Optional sleep location
 - Optional fell-asleep and woke-up times
 - Optional tri-state questions for slept-through-night and had-dreams
+- Optional inline dream details when `Had dreams?` is Yes
 - Optional sleep quality and rested ratings
 - Optional awakening count
 - Optional descriptive tags
@@ -57,6 +58,8 @@ Tri-state answers preserve all three values:
 - Not answered: `null`
 
 Ratings are optional values from `1` through `5`; `Not rated` stores `null`.
+
+When `Had dreams?` is Yes, the form shows an inline optional `Dream details` multiline field directly below that question. Toggling to No or Not answered hides the field but keeps temporary text during the current edit session. On save, dream details are persisted only when `Had dreams?` is Yes; otherwise the stored value is `null`.
 
 Sleep locations and tags use stable keys rather than display labels. Unknown nonblank keys from existing data or backups are preserved and shown with safe fallback labels. Tags are stored as rows, not comma-separated text.
 
@@ -108,10 +111,13 @@ Report sections include:
 - Summary: night date, sleep time, wake time, duration, and location
 - Ratings
 - Sleep details: slept through, dreams, and awakening count
+- Dream details, only when dreams are answered Yes
 - Descriptive tags
 - Notes
 
 Missing optional values are shown explicitly with labels such as `Not recorded`, `Not answered`, `Not rated`, or `Not available`.
+
+If `Had dreams?` is Yes, the report shows a `Dream details` subsection. If no dream text was saved, it shows `No dream details recorded.` The subsection is omitted for No and Not answered.
 
 Selected descriptive tags are grouped under category headings in the report. Only categories with selected tags are shown. Built-in tags use their fixed categories, custom tags use their current Settings category, removed custom tags keep their stored category, and orphaned or unknown tags appear under `Other`.
 

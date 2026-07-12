@@ -11,6 +11,7 @@ The app currently focuses on private, on-device sleep-log entry, review, history
 ## Current features
 
 - Manual sleep-log creation and editing
+- Optional inline dream details
 - One sleep log per night date
 - Last-night launch routing from the splash screen
 - Read-only sleep report with calculated duration
@@ -33,7 +34,7 @@ See [docs/FEATURES.md](docs/FEATURES.md) for detailed user-facing behavior.
 | Minimum SDK | 29 |
 | Namespace | `com.mhlotto.snoozereviews` |
 | Storage | Room |
-| Database | `snooze-reviews.db`, version 3 |
+| Database | `snooze-reviews.db`, version 4 |
 | Networking | None |
 | Requested permissions | None |
 

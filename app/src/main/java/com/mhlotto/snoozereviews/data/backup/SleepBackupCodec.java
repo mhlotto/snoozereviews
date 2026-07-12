@@ -98,7 +98,7 @@ public class SleepBackupCodec {
                 if (log == null) {
                     throw new SleepBackupValidationException("Log record must be an object.");
                 }
-                SleepBackupRecord record = parseRecord(log);
+                SleepBackupRecord record = parseRecord(log, version);
                 if (!nightDates.add(record.getNightDate())) {
                     throw new SleepBackupValidationException("Backup contains duplicate night dates.");
                 }
@@ -131,6 +131,7 @@ public class SleepBackupCodec {
         putNullable(object, "wokeUpMinute", log.getWokeUpMinute());
         putNullable(object, "sleptThroughNight", log.getSleptThroughNight());
         putNullable(object, "hadDreams", log.getHadDreams());
+        putNullable(object, "dreamDetails", Boolean.TRUE.equals(log.getHadDreams()) ? log.getDreamDetails() : null);
         putNullable(object, "sleepRating", log.getSleepRating());
         putNullable(object, "restedRating", log.getRestedRating());
         putNullable(object, "awakeningCount", log.getAwakeningCount());
@@ -218,7 +219,7 @@ public class SleepBackupCodec {
         );
     }
 
-    private SleepBackupRecord parseRecord(JSONObject object) throws JSONException, SleepBackupValidationException {
+    private SleepBackupRecord parseRecord(JSONObject object, int version) throws JSONException, SleepBackupValidationException {
         SleepLogEntity entity = new SleepLogEntity();
         entity.setNightDate(requireString(object, "nightDate"));
         entity.setSleepLocation(optionalString(object, "sleepLocation"));
@@ -226,6 +227,11 @@ public class SleepBackupCodec {
         entity.setWokeUpMinute(optionalInt(object, "wokeUpMinute"));
         entity.setSleptThroughNight(optionalBoolean(object, "sleptThroughNight"));
         entity.setHadDreams(optionalBoolean(object, "hadDreams"));
+        entity.setDreamDetails(version >= 3 ? optionalString(object, "dreamDetails") : null);
+        if (version >= 3 && !Boolean.TRUE.equals(entity.getHadDreams()) && entity.getDreamDetails() != null
+                && !entity.getDreamDetails().trim().isEmpty()) {
+            throw new SleepBackupValidationException("Dream details require hadDreams to be true.");
+        }
         entity.setSleepRating(optionalInt(object, "sleepRating"));
         entity.setRestedRating(optionalInt(object, "restedRating"));
         entity.setAwakeningCount(optionalInt(object, "awakeningCount"));

@@ -477,6 +477,13 @@ public class SleepLogFormActivity extends AppCompatActivity {
         };
         binding.awakeningCountInput.addTextChangedListener(watcher);
         binding.awakeningCountInput.setImeOptions(EditorInfo.IME_ACTION_DONE);
+        binding.dreamDetailsInput.addTextChangedListener(watcher);
+        binding.hadDreamsChipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+            if (!suppressChangeCallbacks) {
+                updateDreamDetailsVisibility();
+                binding.saveError.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void configureBackHandling() {
@@ -623,6 +630,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         state.setSleepLocationKey(getCheckedTag(binding.locationChipGroup, String.class));
         state.setSleptThroughNight(getCheckedTag(binding.sleptThroughChipGroup, Boolean.class));
         state.setHadDreams(getCheckedTag(binding.hadDreamsChipGroup, Boolean.class));
+        state.setDreamDetails(getText(binding.dreamDetailsInput.getText()));
         state.setSleepRating(getCheckedTag(binding.sleepRatingChipGroup, Integer.class));
         state.setRestedRating(getCheckedTag(binding.restedRatingChipGroup, Integer.class));
         state.setAwakeningCount(parseAwakeningCount(showErrors));
@@ -658,6 +666,14 @@ public class SleepLogFormActivity extends AppCompatActivity {
             focusField(binding.nightDateLayout);
             throw new IllegalArgumentException("future date");
         }
+        binding.dreamDetailsLayout.setError(null);
+        String dreamDetails = state.getDreamDetails();
+        if (Boolean.TRUE.equals(state.getHadDreams()) && dreamDetails != null
+                && dreamDetails.codePointCount(0, dreamDetails.length()) > com.mhlotto.snoozereviews.data.SleepLogValidator.MAX_DREAM_DETAILS_CHARS) {
+            binding.dreamDetailsLayout.setError(getString(R.string.error_dream_details_too_long));
+            focusField(binding.dreamDetailsLayout);
+            throw new IllegalArgumentException("dream details too long");
+        }
         state.toEntityForSave();
     }
 
@@ -673,12 +689,21 @@ public class SleepLogFormActivity extends AppCompatActivity {
         checkChipForTag(binding.locationChipGroup, currentState.getSleepLocationKey());
         checkChipForTag(binding.sleptThroughChipGroup, currentState.getSleptThroughNight());
         checkChipForTag(binding.hadDreamsChipGroup, currentState.getHadDreams());
+        binding.dreamDetailsInput.setText(currentState.getDreamDetails() == null ? "" : currentState.getDreamDetails());
+        updateDreamDetailsVisibility();
         checkChipForTag(binding.sleepRatingChipGroup, currentState.getSleepRating());
         checkChipForTag(binding.restedRatingChipGroup, currentState.getRestedRating());
         binding.awakeningCountInput.setText(currentState.getAwakeningCount() == null ? "" : String.valueOf(currentState.getAwakeningCount()));
         binding.notesInput.setText(currentState.getNotes() == null ? "" : currentState.getNotes());
         checkSelectedTags(currentState.getSelectedTagKeys());
         suppressChangeCallbacks = false;
+    }
+
+    private void updateDreamDetailsVisibility() {
+        Boolean hadDreams = getCheckedTag(binding.hadDreamsChipGroup, Boolean.class);
+        boolean visible = Boolean.TRUE.equals(hadDreams);
+        binding.dreamDetailsLayout.setVisibility(visible ? View.VISIBLE : View.GONE);
+        binding.dreamDetailsLayout.setError(null);
     }
 
     private void updateDateInput() {
@@ -807,6 +832,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         putNullableInteger(bundle, prefix + "wokeUpMinute", state.getWokeUpMinute());
         putNullableBoolean(bundle, prefix + "sleptThroughNight", state.getSleptThroughNight());
         putNullableBoolean(bundle, prefix + "hadDreams", state.getHadDreams());
+        bundle.putString(prefix + "dreamDetails", state.getDreamDetails());
         putNullableInteger(bundle, prefix + "sleepRating", state.getSleepRating());
         putNullableInteger(bundle, prefix + "restedRating", state.getRestedRating());
         putNullableInteger(bundle, prefix + "awakeningCount", state.getAwakeningCount());
@@ -823,6 +849,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         state.setWokeUpMinute(getNullableInteger(bundle, prefix + "wokeUpMinute"));
         state.setSleptThroughNight(getNullableBoolean(bundle, prefix + "sleptThroughNight"));
         state.setHadDreams(getNullableBoolean(bundle, prefix + "hadDreams"));
+        state.setDreamDetails(bundle.getString(prefix + "dreamDetails"));
         state.setSleepRating(getNullableInteger(bundle, prefix + "sleepRating"));
         state.setRestedRating(getNullableInteger(bundle, prefix + "restedRating"));
         state.setAwakeningCount(getNullableInteger(bundle, prefix + "awakeningCount"));

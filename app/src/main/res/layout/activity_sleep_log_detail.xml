@@ -196,6 +196,25 @@
                                 style="@style/DetailRowText" />
 
                             <TextView
+                                android:id="@+id/dream_details_heading"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_medium"
+                                android:text="@string/dream_details_label"
+                                android:textAppearance="@style/TextAppearance.SnoozeReviews.Label"
+                                android:textColor="?attr/colorOnSurface"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/dream_details"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="@dimen/spacing_small"
+                                android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
+                                android:textColor="?attr/colorOnSurfaceVariant"
+                                android:visibility="gone" />
+
+                            <TextView
                                 android:id="@+id/awakening_count"
                                 style="@style/DetailRowText" />
                         </LinearLayout>

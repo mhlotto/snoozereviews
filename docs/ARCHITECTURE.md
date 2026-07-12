@@ -12,7 +12,7 @@ Snooze Reviews is a Java Android app using XML layouts, Android Views, View Bind
 - Networking: none
 - Requested Android permissions: none
 - Database filename: `snooze-reviews.db`
-- Room database version: 3
+- Room database version: 4
 
 ## Package structure
 
@@ -54,13 +54,13 @@ The backup layer uses a separate backup service/repository path for JSON import/
 
 ## Room database
 
-`SnoozeReviewsDatabase` is version `3` with `exportSchema = true`. Schema files are committed under:
+`SnoozeReviewsDatabase` is version `4` with `exportSchema = true`. Schema files are committed under:
 
 ```text
 app/schemas/com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase/
 ```
 
-Version 1 is the initial production sleep-log schema. Version 2 adds custom sleep locations through explicit `MIGRATION_1_2`. Version 3 adds custom descriptive tags through explicit `MIGRATION_2_3`. The database builder supports `1 -> 2 -> 3` and `2 -> 3` upgrades.
+Version 1 is the initial production sleep-log schema. Version 2 adds custom sleep locations through explicit `MIGRATION_1_2`. Version 3 adds custom descriptive tags through explicit `MIGRATION_2_3`. Version 4 adds nullable dream details through explicit `MIGRATION_3_4`. The database builder supports `1 -> 2 -> 3 -> 4`, `2 -> 3 -> 4`, and `3 -> 4` upgrades.
 
 ## Tables
 
@@ -70,7 +70,7 @@ One row represents one logged night. Important columns include:
 
 - `id`: auto-generated local primary key
 - `night_date`: canonical ISO local date string
-- optional location, times, answers, ratings, awakening count, and notes
+- optional location, times, answers, dream details, ratings, awakening count, and notes
 - `created_at` and `updated_at`: UTC epoch milliseconds
 
 There is a unique index on `night_date`; the app does not upsert or merge duplicate nights.
@@ -115,6 +115,7 @@ There is a unique index on `normalized_name`. Rows are soft-deactivated rather t
 - Night dates are ISO text, `yyyy-MM-dd`, representing the local date when sleep began.
 - Sleep and wake times are nullable minutes after midnight from `0` through `1439`.
 - Nullable Boolean answers use `true`, `false`, or `null`.
+- Dream details are nullable text and are persisted only when `had_dreams` is `true`.
 - Sleep quality and rested ratings are nullable integers from `1` through `5`.
 - `created_at` and `updated_at` are non-null UTC epoch milliseconds.
 - Unknown nonblank location and tag keys are preserved for forward compatibility.

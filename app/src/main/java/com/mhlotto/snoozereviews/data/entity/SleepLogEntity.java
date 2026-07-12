@@ -37,6 +37,9 @@ public class SleepLogEntity {
     @ColumnInfo(name = "had_dreams")
     private Boolean hadDreams;
 
+    @ColumnInfo(name = "dream_details")
+    private String dreamDetails;
+
     @ColumnInfo(name = "sleep_rating")
     private Integer sleepRating;
 
@@ -72,6 +75,7 @@ public class SleepLogEntity {
         this.wokeUpMinute = other.wokeUpMinute;
         this.sleptThroughNight = other.sleptThroughNight;
         this.hadDreams = other.hadDreams;
+        this.dreamDetails = other.dreamDetails;
         this.sleepRating = other.sleepRating;
         this.restedRating = other.restedRating;
         this.awakeningCount = other.awakeningCount;
@@ -135,6 +139,14 @@ public class SleepLogEntity {
 
     public void setHadDreams(Boolean hadDreams) {
         this.hadDreams = hadDreams;
+    }
+
+    public String getDreamDetails() {
+        return dreamDetails;
+    }
+
+    public void setDreamDetails(String dreamDetails) {
+        this.dreamDetails = dreamDetails;
     }
 
     public Integer getSleepRating() {

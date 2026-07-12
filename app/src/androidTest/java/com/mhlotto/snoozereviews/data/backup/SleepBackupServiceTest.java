@@ -59,12 +59,16 @@ public class SleepBackupServiceTest {
 
     @Test
     public void importsOneRecordIntoEmptyDatabase() throws Exception {
-        ImportPlan plan = plan(record(entity("2026-07-10"), "NOISY"));
+        SleepLogEntity entity = entity("2026-07-10");
+        entity.setHadDreams(Boolean.TRUE);
+        entity.setDreamDetails("Forest");
+        ImportPlan plan = plan(record(entity, "NOISY"));
 
         apply(plan);
 
         SleepLogWithTags result = dao.findByNightDate("2026-07-10");
         assertEquals("2026-07-10", result.getSleepLog().getNightDate());
+        assertEquals("Forest", result.getSleepLog().getDreamDetails());
         assertEquals(1, result.getTags().size());
         assertEquals("NOISY", result.getTags().get(0).getTagKey());
     }

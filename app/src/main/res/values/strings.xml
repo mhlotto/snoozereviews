@@ -49,6 +49,9 @@
     <string name="clear_time">Clear</string>
     <string name="slept_through_question">Slept through the night?</string>
     <string name="had_dreams_question">Had dreams?</string>
+    <string name="dream_details_label">Dream details</string>
+    <string name="dream_details_helper">What do you remember about the dream?</string>
+    <string name="error_dream_details_too_long">Dream details must be 10,000 characters or fewer.</string>
     <string name="answer_yes">Yes</string>
     <string name="answer_no">No</string>
     <string name="answer_not_answered">Not answered</string>
@@ -89,6 +92,7 @@
     <string name="rested_after_waking_label">Rested after waking</string>
     <string name="slept_through_label">Slept through the night</string>
     <string name="dreams_label">Dreams</string>
+    <string name="no_dream_details_recorded">No dream details recorded.</string>
     <string name="awakening_count_report_label">Awakenings</string>
     <string name="loading_sleep_history">Loading sleep history...</string>
     <string name="history_empty_title">No sleep logs yet.</string>

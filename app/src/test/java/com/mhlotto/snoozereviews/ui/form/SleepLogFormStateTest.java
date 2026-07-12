@@ -59,6 +59,44 @@ public class SleepLogFormStateTest {
     }
 
     @Test
+    public void dreamDetailsPersistOnlyWhenHadDreamsIsYes() {
+        SleepLogFormState yes = SleepLogFormState.create("2026-07-10");
+        yes.setHadDreams(Boolean.TRUE);
+        yes.setDreamDetails("  Forest\nPath  ");
+        assertEquals("Forest\nPath", yes.toEntityForSave().getDreamDetails());
+
+        SleepLogFormState blank = SleepLogFormState.create("2026-07-10");
+        blank.setHadDreams(Boolean.TRUE);
+        blank.setDreamDetails("   ");
+        assertNull(blank.toEntityForSave().getDreamDetails());
+
+        SleepLogFormState no = SleepLogFormState.create("2026-07-10");
+        no.setHadDreams(Boolean.FALSE);
+        no.setDreamDetails("Hidden text");
+        assertNull(no.toEntityForSave().getDreamDetails());
+        assertEquals("Hidden text", no.getDreamDetails());
+
+        SleepLogFormState unanswered = SleepLogFormState.create("2026-07-10");
+        unanswered.setHadDreams(null);
+        unanswered.setDreamDetails("Hidden text");
+        assertNull(unanswered.toEntityForSave().getDreamDetails());
+    }
+
+    @Test
+    public void dreamDetailsRejectExcessiveLengthAndDirtyComparisonIncludesTemporaryText() {
+        SleepLogFormState original = SleepLogFormState.create("2026-07-10");
+        SleepLogFormState changed = new SleepLogFormState(original);
+        changed.setDreamDetails("Hidden text");
+
+        assertTrue(changed.isDirtyComparedTo(original));
+
+        SleepLogFormState tooLong = SleepLogFormState.create("2026-07-10");
+        tooLong.setHadDreams(Boolean.TRUE);
+        tooLong.setDreamDetails(repeat("a", com.mhlotto.snoozereviews.data.SleepLogValidator.MAX_DREAM_DETAILS_CHARS + 1));
+        assertThrows(IllegalArgumentException.class, tooLong::toEntityForSave);
+    }
+
+    @Test
     public void awakeningInputMapsEmptyToNullAndRejectsInvalidValues() {
         assertNull(FormInputParser.parseAwakeningCount(""));
         assertNull(FormInputParser.parseAwakeningCount("   "));
@@ -117,6 +155,7 @@ public class SleepLogFormStateTest {
         state.setWokeUpMinute(20);
         state.setSleptThroughNight(null);
         state.setHadDreams(Boolean.TRUE);
+        state.setDreamDetails("dream");
         state.setSleepRating(1);
         state.setRestedRating(2);
         state.setAwakeningCount(3);
@@ -126,5 +165,13 @@ public class SleepLogFormStateTest {
         SleepLogFormState restored = new SleepLogFormState(state);
 
         assertEquals(state, restored);
+    }
+
+    private String repeat(String value, int count) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < count; i++) {
+            builder.append(value);
+        }
+        return builder.toString();
     }
 }

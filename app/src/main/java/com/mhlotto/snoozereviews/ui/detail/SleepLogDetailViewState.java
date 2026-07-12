@@ -16,6 +16,8 @@ public class SleepLogDetailViewState {
     private final String location;
     private final String sleptThroughNight;
     private final String hadDreams;
+    private final boolean showDreamDetails;
+    private final String dreamDetails;
     private final String sleepRating;
     private final String restedRating;
     private final String awakeningCount;
@@ -33,6 +35,8 @@ public class SleepLogDetailViewState {
             String location,
             String sleptThroughNight,
             String hadDreams,
+            boolean showDreamDetails,
+            String dreamDetails,
             String sleepRating,
             String restedRating,
             String awakeningCount,
@@ -40,7 +44,7 @@ public class SleepLogDetailViewState {
             String notes
     ) {
         this(sleepLogId, nightDate, formattedNightDate, fellAsleepTime, wokeUpTime, duration, location,
-                sleptThroughNight, hadDreams, sleepRating, restedRating, awakeningCount, tags,
+                sleptThroughNight, hadDreams, showDreamDetails, dreamDetails, sleepRating, restedRating, awakeningCount, tags,
                 Collections.emptyList(), notes);
     }
 
@@ -54,6 +58,8 @@ public class SleepLogDetailViewState {
             String location,
             String sleptThroughNight,
             String hadDreams,
+            boolean showDreamDetails,
+            String dreamDetails,
             String sleepRating,
             String restedRating,
             String awakeningCount,
@@ -70,6 +76,8 @@ public class SleepLogDetailViewState {
         this.location = location;
         this.sleptThroughNight = sleptThroughNight;
         this.hadDreams = hadDreams;
+        this.showDreamDetails = showDreamDetails;
+        this.dreamDetails = dreamDetails;
         this.sleepRating = sleepRating;
         this.restedRating = restedRating;
         this.awakeningCount = awakeningCount;
@@ -112,6 +120,14 @@ public class SleepLogDetailViewState {
 
     public String getHadDreams() {
         return hadDreams;
+    }
+
+    public boolean shouldShowDreamDetails() {
+        return showDreamDetails;
+    }
+
+    public String getDreamDetails() {
+        return dreamDetails;
     }
 
     public String getSleepRating() {

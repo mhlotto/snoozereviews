@@ -40,7 +40,7 @@ snooze-reviews-backup
 Current logical backup version:
 
 ```text
-2
+3
 ```
 
 Top-level structure:
@@ -48,8 +48,8 @@ Top-level structure:
 ```json
 {
   "format": "snooze-reviews-backup",
-  "version": 2,
-  "databaseVersion": 3,
+  "version": 3,
+  "databaseVersion": 4,
   "exportedAt": "2026-07-11T14:30:00Z",
   "customTags": [],
   "logs": []
@@ -58,7 +58,7 @@ Top-level structure:
 
 `databaseVersion` is metadata. The logical backup version is the import compatibility gate.
 
-Unsupported newer backup versions are rejected. Versions less than 1 are rejected. Version 1 backups remain importable, but they do not include custom tag metadata.
+Unsupported newer backup versions are rejected. Versions less than 1 are rejected. Version 1 and 2 backups remain importable. Version 1 does not include custom tag metadata. Versions 1 and 2 do not include dream details and import them as `null`.
 
 ## Custom tag definitions
 
@@ -91,6 +91,7 @@ Each log exports:
 - `wokeUpMinute`
 - `sleptThroughNight`
 - `hadDreams`
+- `dreamDetails`
 - `sleepRating`
 - `restedRating`
 - `awakeningCount`
@@ -100,6 +101,8 @@ Each log exports:
 - `tags`
 
 Room IDs are not exported. `nightDate` is the logical identity. Tags are exported as arrays on each log, not comma-separated strings.
+
+`dreamDetails` is nullable and appears in backup version 3. New exports write it only when `hadDreams` is true; otherwise it is exported as `null`.
 
 Unknown valid location and tag keys are preserved.
 
@@ -141,6 +144,7 @@ The whole document is parsed and validated before database modification. Validat
 - Minute, rating, awakening-count, and timestamp ranges
 - `updatedAt >= createdAt`
 - Tag array and nonblank tag keys
+- Dream details type, length, allowed characters, and the `hadDreams == true` invariant for version 3 backups
 - Custom tag definition keys, names, categories, active states, and timestamps in version 2 backups
 
 Unknown extra JSON fields are ignored for supported versions. Future night dates are not rejected solely because they are future dates.
@@ -166,6 +170,8 @@ If a custom key cannot be decoded, the key is preserved as an unknown forward-co
 For version 2 backups, imported matching custom tag keys replace the local custom tag category and active state. New custom tag keys are inserted. Local-only custom tags remain unchanged.
 
 For version 1 backups, there is no `customTags` array. If a log contains a valid `CUSTOM_TAG_B64:` key, import decodes the display name and creates a missing custom-tag row as active in the `Other` category. Existing local custom tag rows keep their current category and active state. Version 1 cannot restore original custom-tag category or active/inactive state because it did not contain that metadata.
+
+For version 1 and 2 backups, logs import with `dreamDetails = null`. For version 3 backups, nonblank dream details are rejected unless `hadDreams` is true.
 
 Before applying an import, the app calculates a confirmation summary showing imported records, new records, matching dates that will be replaced, local-only records that will remain unchanged, and custom tag definitions that will be added or updated.
 

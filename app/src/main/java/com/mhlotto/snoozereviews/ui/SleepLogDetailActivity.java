@@ -222,6 +222,10 @@ public class SleepLogDetailActivity extends AppCompatActivity {
         binding.restedRating.setText(getString(R.string.time_set_format, getString(R.string.rested_after_waking_label), state.getRestedRating()));
         binding.sleptThrough.setText(getString(R.string.time_set_format, getString(R.string.slept_through_label), state.getSleptThroughNight()));
         binding.hadDreams.setText(getString(R.string.time_set_format, getString(R.string.dreams_label), state.getHadDreams()));
+        binding.dreamDetailsHeading.setVisibility(state.shouldShowDreamDetails() ? View.VISIBLE : View.GONE);
+        binding.dreamDetails.setVisibility(state.shouldShowDreamDetails() ? View.VISIBLE : View.GONE);
+        binding.dreamDetails.setText(state.getDreamDetails());
+        ViewCompat.setAccessibilityHeading(binding.dreamDetailsHeading, true);
         binding.awakeningCount.setText(getString(R.string.time_set_format, getString(R.string.awakening_count_report_label), state.getAwakeningCount()));
         binding.notes.setText(state.getNotes());
 

@@ -83,6 +83,31 @@ public class SleepLogRepositoryTest {
     }
 
     @Test
+    public void createUpdateAndClearDreamDetails() {
+        SleepLogEntity create = new SleepLogEntity("2026-07-10");
+        create.setHadDreams(Boolean.TRUE);
+        create.setDreamDetails("  Forest\nPath  ");
+        Result<Long> created = new Result<>();
+
+        repository.createSleepLog(create, Collections.emptyList(), created);
+
+        assertNull(created.error);
+        assertEquals("Forest\nPath", database.sleepLogDao().findById(created.value).getSleepLog().getDreamDetails());
+
+        SleepLogEntity update = new SleepLogEntity("2026-07-10");
+        update.setId(created.value);
+        update.setHadDreams(Boolean.FALSE);
+        update.setDreamDetails("Hidden");
+        Result<Void> updated = new Result<>();
+        repository.updateSleepLog(update, Collections.emptyList(), updated);
+
+        assertNull(updated.error);
+        SleepLogEntity cleared = database.sleepLogDao().findById(created.value).getSleepLog();
+        assertEquals(Boolean.FALSE, cleared.getHadDreams());
+        assertNull(cleared.getDreamDetails());
+    }
+
+    @Test
     public void callbacksReceiveValidationAndDatabaseFailures() {
         Result<Long> invalid = new Result<>();
         repository.createSleepLog(new SleepLogEntity("bad-date"), Collections.emptyList(), invalid);

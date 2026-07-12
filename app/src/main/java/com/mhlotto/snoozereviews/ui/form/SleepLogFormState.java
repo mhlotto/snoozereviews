@@ -19,6 +19,7 @@ public class SleepLogFormState {
     private Integer wokeUpMinute;
     private Boolean sleptThroughNight;
     private Boolean hadDreams;
+    private String dreamDetails;
     private Integer sleepRating;
     private Integer restedRating;
     private Integer awakeningCount;
@@ -36,6 +37,7 @@ public class SleepLogFormState {
         this.wokeUpMinute = other.wokeUpMinute;
         this.sleptThroughNight = other.sleptThroughNight;
         this.hadDreams = other.hadDreams;
+        this.dreamDetails = other.dreamDetails;
         this.sleepRating = other.sleepRating;
         this.restedRating = other.restedRating;
         this.awakeningCount = other.awakeningCount;
@@ -59,6 +61,7 @@ public class SleepLogFormState {
         state.wokeUpMinute = entity.getWokeUpMinute();
         state.sleptThroughNight = entity.getSleptThroughNight();
         state.hadDreams = entity.getHadDreams();
+        state.dreamDetails = entity.getDreamDetails();
         state.sleepRating = entity.getSleepRating();
         state.restedRating = entity.getRestedRating();
         state.awakeningCount = entity.getAwakeningCount();
@@ -77,6 +80,7 @@ public class SleepLogFormState {
         entity.setWokeUpMinute(wokeUpMinute);
         entity.setSleptThroughNight(sleptThroughNight);
         entity.setHadDreams(hadDreams);
+        entity.setDreamDetails(dreamDetails);
         entity.setSleepRating(sleepRating);
         entity.setRestedRating(restedRating);
         entity.setAwakeningCount(awakeningCount);
@@ -142,6 +146,14 @@ public class SleepLogFormState {
 
     public void setHadDreams(Boolean hadDreams) {
         this.hadDreams = hadDreams;
+    }
+
+    public String getDreamDetails() {
+        return dreamDetails;
+    }
+
+    public void setDreamDetails(String dreamDetails) {
+        this.dreamDetails = normalizeNotes(dreamDetails);
     }
 
     public Integer getSleepRating() {
@@ -220,6 +232,7 @@ public class SleepLogFormState {
                 && Objects.equals(wokeUpMinute, that.wokeUpMinute)
                 && Objects.equals(sleptThroughNight, that.sleptThroughNight)
                 && Objects.equals(hadDreams, that.hadDreams)
+                && Objects.equals(dreamDetails, that.dreamDetails)
                 && Objects.equals(sleepRating, that.sleepRating)
                 && Objects.equals(restedRating, that.restedRating)
                 && Objects.equals(awakeningCount, that.awakeningCount)
@@ -230,6 +243,6 @@ public class SleepLogFormState {
     @Override
     public int hashCode() {
         return Objects.hash(id, nightDate, sleepLocationKey, fellAsleepMinute, wokeUpMinute,
-                sleptThroughNight, hadDreams, sleepRating, restedRating, awakeningCount, notes, selectedTagKeys);
+                sleptThroughNight, hadDreams, dreamDetails, sleepRating, restedRating, awakeningCount, notes, selectedTagKeys);
     }
 }

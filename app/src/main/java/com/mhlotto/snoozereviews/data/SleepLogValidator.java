@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.TreeSet;
 
 public final class SleepLogValidator {
+    public static final int MAX_DREAM_DETAILS_CHARS = 10_000;
+
     private SleepLogValidator() {
     }
 
@@ -23,6 +25,7 @@ public final class SleepLogValidator {
         copy.setSleepLocation(normalizeOptionalNonblank(copy.getSleepLocation(), "sleepLocation"));
         copy.setFellAsleepMinute(validateMinute(copy.getFellAsleepMinute(), "fellAsleepMinute"));
         copy.setWokeUpMinute(validateMinute(copy.getWokeUpMinute(), "wokeUpMinute"));
+        copy.setDreamDetails(normalizeDreamDetails(copy.getHadDreams(), copy.getDreamDetails()));
         copy.setSleepRating(validateRating(copy.getSleepRating(), "sleepRating"));
         copy.setRestedRating(validateRating(copy.getRestedRating(), "restedRating"));
         copy.setAwakeningCount(validateAwakeningCount(copy.getAwakeningCount()));
@@ -102,5 +105,29 @@ public final class SleepLogValidator {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private static String normalizeDreamDetails(Boolean hadDreams, String value) {
+        if (!Boolean.TRUE.equals(hadDreams)) {
+            return null;
+        }
+        String normalized = normalizeOptionalText(value);
+        if (normalized != null && normalized.codePointCount(0, normalized.length()) > MAX_DREAM_DETAILS_CHARS) {
+            throw new IllegalArgumentException("dreamDetails must be 10000 characters or fewer");
+        }
+        if (normalized != null) {
+            validateDreamDetailsCharacters(normalized);
+        }
+        return normalized;
+    }
+
+    private static void validateDreamDetailsCharacters(String value) {
+        for (int i = 0; i < value.length(); ) {
+            int codePoint = value.codePointAt(i);
+            if (Character.isISOControl(codePoint) && codePoint != '\n' && codePoint != '\r' && codePoint != '\t') {
+                throw new IllegalArgumentException("dreamDetails must not contain control characters");
+            }
+            i += Character.charCount(codePoint);
+        }
     }
 }
