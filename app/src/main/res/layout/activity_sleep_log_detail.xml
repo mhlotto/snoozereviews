@@ -220,12 +220,12 @@
                                 android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                                 android:textColor="?attr/colorOnSurface" />
 
-                            <com.google.android.material.chip.ChipGroup
+                            <LinearLayout
                                 android:id="@+id/tags"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="@dimen/spacing_small"
-                                app:singleSelection="false" />
+                                android:orientation="vertical" />
 
                             <TextView
                                 android:id="@+id/no_tags"

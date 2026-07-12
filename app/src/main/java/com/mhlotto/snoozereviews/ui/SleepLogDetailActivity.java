@@ -8,21 +8,30 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.ViewCompat;
 
 import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.data.SleepLogRepository;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagRepository;
 import com.mhlotto.snoozereviews.databinding.ActivitySleepLogDetailBinding;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailFormatter;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailViewState;
 import com.mhlotto.snoozereviews.ui.detail.TagDisplayItem;
 import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagCategoryGroup;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagLabelResolver;
 
+import java.util.List;
 import java.util.Locale;
 
 public class SleepLogDetailActivity extends AppCompatActivity {
@@ -33,6 +42,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
 
     private ActivitySleepLogDetailBinding binding;
     private SleepLogRepository repository;
+    private CustomSleepTagRepository customTagRepository;
     private SleepLogDetailFormatter formatter;
     private long sleepLogId;
     private String nightDate;
@@ -62,6 +72,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
         binding.toolbar.setNavigationOnClickListener(view -> finish());
 
         repository = new SleepLogRepository(this);
+        customTagRepository = new CustomSleepTagRepository(this, SleepTagLabelResolver.builtInDuplicateNames(new AndroidLabelResolver()));
         formatter = new SleepLogDetailFormatter(new AndroidLabelResolver(), Locale.getDefault(), DateFormat.is24HourFormat(this));
 
         editLauncher = registerForActivityResult(
@@ -90,6 +101,9 @@ public class SleepLogDetailActivity extends AppCompatActivity {
         destroyed = true;
         if (repository != null) {
             repository.shutdownBackgroundExecutor();
+        }
+        if (customTagRepository != null) {
+            customTagRepository.shutdownBackgroundExecutor();
         }
         super.onDestroy();
     }
@@ -145,8 +159,29 @@ public class SleepLogDetailActivity extends AppCompatActivity {
                     showError(getString(R.string.detail_not_found_message), true);
                     return;
                 }
+                loadCustomTagsAndRender(result, refreshExistingReport, requestGeneration);
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                if (destroyed || requestGeneration != loadGeneration) {
+                    return;
+                }
+                Log.e(TAG, "Failed to load sleep report", error);
+                showLoadFailure(refreshExistingReport);
+            }
+        });
+    }
+
+    private void loadCustomTagsAndRender(SleepLogWithTags result, boolean refreshExistingReport, int requestGeneration) {
+        customTagRepository.listAll(new CustomSleepTagRepository.Callback<>() {
+            @Override
+            public void onSuccess(List<CustomSleepTagEntity> customTags) {
+                if (destroyed || requestGeneration != loadGeneration) {
+                    return;
+                }
                 try {
-                    currentViewState = formatter.format(result);
+                    currentViewState = formatter.format(result, customTags);
                     nightDate = currentViewState.getNightDate();
                     renderReport(currentViewState);
                     hasLoadedReport = true;
@@ -162,7 +197,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
                 if (destroyed || requestGeneration != loadGeneration) {
                     return;
                 }
-                Log.e(TAG, "Failed to load sleep report", error);
+                Log.e(TAG, "Failed to load custom tag metadata", error);
                 showLoadFailure(refreshExistingReport);
             }
         });
@@ -197,14 +232,49 @@ public class SleepLogDetailActivity extends AppCompatActivity {
         } else {
             binding.noTags.setVisibility(View.GONE);
             binding.tags.setVisibility(View.VISIBLE);
-            for (TagDisplayItem item : state.getTags()) {
-                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.view_choice_chip, binding.tags, false);
-                chip.setText(item.getLabel());
-                chip.setCheckable(false);
-                chip.setClickable(false);
-                chip.setFocusable(false);
-                binding.tags.addView(chip);
+            for (SleepTagCategoryGroup group : state.getTagGroups()) {
+                addTagCategoryGroup(group);
             }
+        }
+    }
+
+    private void addTagCategoryGroup(SleepTagCategoryGroup group) {
+        TextView heading = new TextView(this);
+        heading.setText(group.getCategoryLabel());
+        heading.setTextAppearance(R.style.TextAppearance_SnoozeReviews_Label);
+        heading.setTextColor(com.google.android.material.color.MaterialColors.getColor(
+                heading,
+                com.google.android.material.R.attr.colorOnSurface
+        ));
+        ViewCompat.setAccessibilityHeading(heading, true);
+        LinearLayout.LayoutParams headingParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        if (binding.tags.getChildCount() > 0) {
+            headingParams.topMargin = getResources().getDimensionPixelSize(R.dimen.spacing_medium);
+        }
+        binding.tags.addView(heading, headingParams);
+
+        ChipGroup chipGroup = new ChipGroup(this);
+        chipGroup.setSingleSelection(false);
+        chipGroup.setChipSpacingHorizontalResource(R.dimen.chip_spacing_horizontal);
+        chipGroup.setChipSpacingVerticalResource(R.dimen.chip_spacing_vertical);
+        LinearLayout.LayoutParams groupParams = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        groupParams.topMargin = getResources().getDimensionPixelSize(R.dimen.spacing_small);
+        binding.tags.addView(chipGroup, groupParams);
+
+        for (TagDisplayItem item : group.getTags()) {
+            Chip chip = (Chip) getLayoutInflater().inflate(R.layout.view_choice_chip, chipGroup, false);
+            chip.setText(item.getLabel());
+            chip.setContentDescription(getString(R.string.tag_with_category_content_description_format, item.getLabel(), group.getCategoryLabel()));
+            chip.setCheckable(false);
+            chip.setClickable(false);
+            chip.setFocusable(false);
+            chipGroup.addView(chip);
         }
     }
 

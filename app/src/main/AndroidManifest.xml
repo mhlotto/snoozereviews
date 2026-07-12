@@ -14,6 +14,9 @@
             android:name=".ui.SettingsActivity"
             android:exported="false" />
         <activity
+            android:name=".ui.SleepTagSettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.BackupRestoreActivity"
             android:exported="false" />
         <activity

@@ -193,12 +193,7 @@ public class BackupRestoreActivity extends AppCompatActivity {
         ImportPlanSummary summary = plan.getSummary();
         new AlertDialog.Builder(this)
                 .setTitle(getString(R.string.backup_import_confirm_title_format, summary.getTotalRecords()))
-                .setMessage(getString(
-                        R.string.backup_import_confirm_message_format,
-                        summary.getNewRecords(),
-                        summary.getReplacementRecords(),
-                        summary.getRetainedLocalRecords()
-                ))
+                .setMessage(importConfirmationMessage(summary))
                 .setPositiveButton(R.string.import_action, (dialog, which) -> applyPendingImport())
                 .setNegativeButton(android.R.string.cancel, (dialog, which) -> pendingImportPlan = null)
                 .show();
@@ -221,11 +216,7 @@ public class BackupRestoreActivity extends AppCompatActivity {
                 }
                 setBusy(false);
                 ImportPlanSummary summary = result.getSummary();
-                showMessage(getString(
-                        R.string.backup_import_success_format,
-                        summary.getNewRecords(),
-                        summary.getReplacementRecords()
-                ), false);
+                showMessage(importSuccessMessage(summary), false);
             }
 
             @Override
@@ -238,6 +229,39 @@ public class BackupRestoreActivity extends AppCompatActivity {
                 showMessage(getString(R.string.backup_database_error), true);
             }
         });
+    }
+
+    private String importConfirmationMessage(ImportPlanSummary summary) {
+        String message = getString(
+                R.string.backup_import_confirm_message_format,
+                summary.getNewRecords(),
+                summary.getReplacementRecords(),
+                summary.getRetainedLocalRecords()
+        );
+        if (summary.getCustomTagsToAdd() > 0 || summary.getCustomTagsToUpdate() > 0) {
+            message += getString(
+                    R.string.backup_import_confirm_custom_tags_format,
+                    summary.getCustomTagsToAdd(),
+                    summary.getCustomTagsToUpdate()
+            );
+        }
+        return message;
+    }
+
+    private String importSuccessMessage(ImportPlanSummary summary) {
+        String message = getString(
+                R.string.backup_import_success_format,
+                summary.getNewRecords(),
+                summary.getReplacementRecords()
+        );
+        if (summary.getCustomTagsToAdd() > 0 || summary.getCustomTagsToUpdate() > 0) {
+            message += getString(
+                    R.string.backup_import_success_custom_tags_format,
+                    summary.getCustomTagsToAdd(),
+                    summary.getCustomTagsToUpdate()
+            );
+        }
+        return message;
     }
 
     private void showImportParseError(Throwable error) {

@@ -153,6 +153,10 @@ public class SleepLogDetailFormatterTest {
             if (resId == R.string.tag_too_hot) return "Too hot";
             if (resId == R.string.tag_calm) return "Calm";
             if (resId == R.string.tag_groggy) return "Groggy";
+            if (resId == R.string.tag_category_temperature_environment) return "Temperature and environment";
+            if (resId == R.string.tag_category_mind_dreams) return "Mind and dreams";
+            if (resId == R.string.tag_category_morning_result) return "Morning result";
+            if (resId == R.string.tag_category_other) return "Other";
             throw new IllegalArgumentException("Unhandled label: " + resId);
         }
 

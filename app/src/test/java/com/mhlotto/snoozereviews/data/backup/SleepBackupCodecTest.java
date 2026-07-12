@@ -6,7 +6,10 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import com.mhlotto.snoozereviews.data.SleepLocationKeys;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
+import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
 
 import org.junit.Test;
 
@@ -24,7 +27,9 @@ public class SleepBackupCodecTest {
         String json = codec.serialize(document());
 
         assertTrue(json.contains("\"format\": \"snooze-reviews-backup\""));
-        assertTrue(json.contains("\"version\": 1"));
+        assertTrue(json.contains("\"version\": 2"));
+        assertTrue(json.contains("\"databaseVersion\": 3"));
+        assertTrue(json.contains("\"customTags\": []"));
         assertTrue(json.contains("\"logs\": []"));
         assertTrue(json.endsWith("\n"));
     }
@@ -69,11 +74,42 @@ public class SleepBackupCodecTest {
 
     @Test
     public void parsesAndRoundTripsVersionOneBackup() throws Exception {
-        SleepBackupDocument parsed = codec.parse(codec.serialize(document(new SleepBackupRecord(entity("2026-07-10"), Arrays.asList("UNKNOWN_TAG")))));
+        SleepBackupDocument parsed = codec.parse(base("\"logs\":[{\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[\"UNKNOWN_TAG\"]}]", 1, 1));
 
         assertEquals(1, parsed.getRecords().size());
         assertEquals("2026-07-10", parsed.getRecords().get(0).getNightDate());
         assertEquals(Collections.singletonList("UNKNOWN_TAG"), parsed.getRecords().get(0).getTagKeys());
+        assertEquals(0, parsed.getCustomTags().size());
+    }
+
+    @Test
+    public void serializesAndParsesVersionTwoCustomTagDefinitions() throws Exception {
+        String key = CustomSleepTagKey.encode("Weighted Blanket");
+        SleepBackupDocument document = new SleepBackupDocument(
+                3,
+                Instant.parse("2026-07-11T14:30:00Z"),
+                Collections.singletonList(new SleepBackupCustomTag(new CustomSleepTagEntity(
+                        key,
+                        "Weighted Blanket",
+                        "weighted blanket",
+                        SleepTagCategoryKeys.ENVIRONMENT,
+                        false,
+                        10L,
+                        20L
+                ))),
+                Collections.emptyList()
+        );
+
+        String json = codec.serialize(document);
+        assertTrue(json.contains("\"customTags\""));
+        assertTrue(json.contains("\"categoryKey\": \"ENVIRONMENT\""));
+        assertTrue(json.contains("\"isActive\": false"));
+
+        SleepBackupCustomTag parsed = codec.parse(json).getCustomTags().get(0);
+        assertEquals(key, parsed.getEntity().getTagKey());
+        assertEquals("Weighted Blanket", parsed.getEntity().getDisplayName());
+        assertEquals(SleepTagCategoryKeys.ENVIRONMENT, parsed.getEntity().getCategoryKey());
+        assertFalse(parsed.getEntity().isActive());
     }
 
     @Test
@@ -107,7 +143,7 @@ public class SleepBackupCodecTest {
         assertInvalid("not json");
         assertInvalid("{\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"wrong\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
-        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":2,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
+        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":3,\"databaseVersion\":3,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"customTags\":[],\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":0,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":0,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"bad\",\"logs\":[]}");
@@ -122,7 +158,18 @@ public class SleepBackupCodecTest {
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"awakeningCount\":-1,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"createdAt\":2,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[\"\"]"));
-        assertInvalid(base("\"logs\":[{\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]},{\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]}]"));
+        assertInvalid(base("\"customTags\":[],\"logs\":[{\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]},{\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]}]"));
+    }
+
+    @Test
+    public void rejectsInvalidVersionTwoCustomTags() {
+        String key = CustomSleepTagKey.encode("Weighted Blanket");
+        assertInvalid(base("\"customTags\":[{\"tagKey\":\"" + key + "\",\"displayName\":\"Other Name\",\"categoryKey\":\"OTHER\",\"isActive\":true,\"createdAt\":1,\"updatedAt\":1}],\"logs\":[]", 2, 3));
+        assertInvalid(base("\"customTags\":[{\"tagKey\":\"" + key + "\",\"displayName\":\"Weighted Blanket\",\"categoryKey\":\"BAD\",\"isActive\":true,\"createdAt\":1,\"updatedAt\":1}],\"logs\":[]", 2, 3));
+        assertInvalid(base("\"customTags\":[{\"tagKey\":\"" + key + "\",\"displayName\":\"Weighted Blanket\",\"categoryKey\":\"OTHER\",\"isActive\":true,\"createdAt\":2,\"updatedAt\":1}],\"logs\":[]", 2, 3));
+        assertInvalid(base("\"customTags\":[{\"tagKey\":\"" + key + "\",\"displayName\":\"Weighted Blanket\",\"categoryKey\":\"OTHER\",\"isActive\":true,\"createdAt\":1,\"updatedAt\":1},{\"tagKey\":\"" + key + "\",\"displayName\":\"Weighted Blanket\",\"categoryKey\":\"OTHER\",\"isActive\":true,\"createdAt\":1,\"updatedAt\":1}],\"logs\":[]", 2, 3));
+        String builtInDuplicate = CustomSleepTagKey.encode("Too hot");
+        assertInvalid(base("\"customTags\":[{\"tagKey\":\"" + builtInDuplicate + "\",\"displayName\":\"Too hot\",\"categoryKey\":\"OTHER\",\"isActive\":true,\"createdAt\":1,\"updatedAt\":1}],\"logs\":[]", 2, 3));
     }
 
     @Test
@@ -133,7 +180,7 @@ public class SleepBackupCodecTest {
             logs.append("{\"nightDate\":\"").append(String.format("2300-%02d-%02d", ((i / 28) % 12) + 1, (i % 28) + 1)).append("\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]}");
         }
         logs.append(']');
-        assertInvalid(base("\"logs\":" + logs));
+        assertInvalid(base("\"customTags\":[],\"logs\":" + logs));
 
         byte[] bytes = new byte[SleepBackupCodec.MAX_BACKUP_BYTES + 1];
         try {
@@ -145,7 +192,7 @@ public class SleepBackupCodecTest {
     }
 
     private SleepBackupDocument document(SleepBackupRecord... records) {
-        return new SleepBackupDocument(1, Instant.parse("2026-07-11T14:30:00Z"), Arrays.asList(records));
+        return new SleepBackupDocument(3, Instant.parse("2026-07-11T14:30:00Z"), Arrays.asList(records));
     }
 
     private SleepLogEntity entity(String nightDate) {
@@ -157,11 +204,15 @@ public class SleepBackupCodecTest {
     }
 
     private String withLog(String fields) {
-        return base("\"logs\":[{" + fields + "}]");
+        return base("\"customTags\":[],\"logs\":[{" + fields + "}]");
     }
 
     private String base(String tail) {
-        return "{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\"," + tail + "}";
+        return base(tail, 2, 3);
+    }
+
+    private String base(String tail, int version, int databaseVersion) {
+        return "{\"format\":\"snooze-reviews-backup\",\"version\":" + version + ",\"databaseVersion\":" + databaseVersion + ",\"exportedAt\":\"2026-07-11T00:00:00Z\"," + tail + "}";
     }
 
     private void assertInvalid(String json) {

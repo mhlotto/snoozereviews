@@ -14,8 +14,11 @@ import com.mhlotto.snoozereviews.data.SleepLogWithTags;
 import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
 import com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase;
 import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
+import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
 
 import org.junit.After;
 import org.junit.Before;
@@ -146,6 +149,56 @@ public class SleepBackupServiceTest {
     }
 
     @Test
+    public void versionOneImportValidCustomTagKeyReconstructsOtherCategoryRow() throws Exception {
+        String customKey = CustomSleepTagKey.encode("Weighted Blanket");
+
+        apply(plan(record(entity("2026-07-10"), customKey)));
+
+        CustomSleepTagEntity tag = database.customSleepTagDao().findByKey(customKey);
+        assertEquals("Weighted Blanket", tag.getDisplayName());
+        assertEquals(SleepTagCategoryKeys.OTHER, tag.getCategoryKey());
+        assertEquals(1, database.customSleepTagDao().countActive());
+        assertEquals(customKey, dao.findByNightDate("2026-07-10").getTags().get(0).getTagKey());
+    }
+
+    @Test
+    public void versionTwoImportMergesCustomTagDefinitionsWithLogsInOneTransaction() throws Exception {
+        String key = CustomSleepTagKey.encode("Weighted Blanket");
+        database.customSleepTagDao().insert(new CustomSleepTagEntity(
+                key,
+                "Weighted Blanket",
+                "weighted blanket",
+                SleepTagCategoryKeys.OTHER,
+                false,
+                5L,
+                5L
+        ));
+        SleepBackupDocument document = new SleepBackupDocument(
+                3,
+                Instant.parse("2026-07-11T00:00:00Z"),
+                Collections.singletonList(new SleepBackupCustomTag(new CustomSleepTagEntity(
+                        key,
+                        "Weighted Blanket",
+                        "weighted blanket",
+                        SleepTagCategoryKeys.ENVIRONMENT,
+                        true,
+                        10L,
+                        20L
+                ))),
+                Collections.singletonList(record(entity("2026-07-10"), key))
+        );
+
+        apply(new ImportPlan(document, service.calculateSummary(document)));
+
+        CustomSleepTagEntity tag = database.customSleepTagDao().findByKey(key);
+        assertEquals(SleepTagCategoryKeys.ENVIRONMENT, tag.getCategoryKey());
+        assertEquals(true, tag.isActive());
+        assertEquals(10L, tag.getCreatedAt());
+        assertEquals(20L, tag.getUpdatedAt());
+        assertEquals(key, dao.findByNightDate("2026-07-10").getTags().get(0).getTagKey());
+    }
+
+    @Test
     public void exportReadsAllRecordsAndEmptyExportSucceeds() throws Exception {
         ByteArrayOutputStream emptyOutput = new ByteArrayOutputStream();
         export(emptyOutput);
@@ -153,12 +206,22 @@ public class SleepBackupServiceTest {
         assertEquals(0, new SleepBackupCodec().parse(emptyJson).getRecords().size());
 
         dao.createLogWithTags(entity("2026-07-10"), Collections.singletonList("TAG"));
+        database.customSleepTagDao().insert(new CustomSleepTagEntity(
+                CustomSleepTagKey.encode("Weighted Blanket"),
+                "Weighted Blanket",
+                "weighted blanket",
+                SleepTagCategoryKeys.OTHER,
+                true,
+                1L,
+                2L
+        ));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         SleepBackupService.ExportResult result = export(output);
         SleepBackupDocument parsed = new SleepBackupCodec().parse(output.toString("UTF-8"));
 
         assertEquals(1, result.getExportedLogs());
         assertEquals(1, parsed.getRecords().size());
+        assertEquals(1, parsed.getCustomTags().size());
         assertEquals("TAG", parsed.getRecords().get(0).getTagKeys().get(0));
     }
 

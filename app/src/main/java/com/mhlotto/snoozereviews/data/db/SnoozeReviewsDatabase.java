@@ -9,8 +9,10 @@ import androidx.room.migration.Migration;
 import androidx.sqlite.db.SupportSQLiteDatabase;
 
 import com.mhlotto.snoozereviews.data.dao.CustomSleepLocationDao;
+import com.mhlotto.snoozereviews.data.dao.CustomSleepTagDao;
 import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
 import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
 
@@ -18,9 +20,10 @@ import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
         entities = {
                 SleepLogEntity.class,
                 SleepLogTagEntity.class,
-                CustomSleepLocationEntity.class
+                CustomSleepLocationEntity.class,
+                CustomSleepTagEntity.class
         },
-        version = 2,
+        version = 3,
         exportSchema = true
 )
 public abstract class SnoozeReviewsDatabase extends RoomDatabase {
@@ -43,11 +46,31 @@ public abstract class SnoozeReviewsDatabase extends RoomDatabase {
         }
     };
 
+    public static final Migration MIGRATION_2_3 = new Migration(2, 3) {
+        @Override
+        public void migrate(SupportSQLiteDatabase database) {
+            database.execSQL("CREATE TABLE IF NOT EXISTS `custom_sleep_tags` ("
+                    + "`tag_key` TEXT NOT NULL, "
+                    + "`display_name` TEXT NOT NULL, "
+                    + "`normalized_name` TEXT NOT NULL, "
+                    + "`category_key` TEXT NOT NULL, "
+                    + "`is_active` INTEGER NOT NULL, "
+                    + "`created_at` INTEGER NOT NULL, "
+                    + "`updated_at` INTEGER NOT NULL, "
+                    + "PRIMARY KEY(`tag_key`))");
+            database.execSQL("CREATE UNIQUE INDEX IF NOT EXISTS "
+                    + "`index_custom_sleep_tags_normalized_name` "
+                    + "ON `custom_sleep_tags` (`normalized_name`)");
+        }
+    };
+
     private static volatile SnoozeReviewsDatabase instance;
 
     public abstract SleepLogDao sleepLogDao();
 
     public abstract CustomSleepLocationDao customSleepLocationDao();
+
+    public abstract CustomSleepTagDao customSleepTagDao();
 
     public static SnoozeReviewsDatabase getInstance(Context context) {
         if (instance == null) {
@@ -58,7 +81,7 @@ public abstract class SnoozeReviewsDatabase extends RoomDatabase {
                                     SnoozeReviewsDatabase.class,
                                     DATABASE_NAME
                             )
-                            .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
                             .build();
                 }
             }

@@ -1,5 +1,7 @@
 package com.mhlotto.snoozereviews.ui.detail;
 
+import com.mhlotto.snoozereviews.ui.tag.SleepTagCategoryGroup;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +20,7 @@ public class SleepLogDetailViewState {
     private final String restedRating;
     private final String awakeningCount;
     private final List<TagDisplayItem> tags;
+    private final List<SleepTagCategoryGroup> tagGroups;
     private final String notes;
 
     public SleepLogDetailViewState(
@@ -36,6 +39,28 @@ public class SleepLogDetailViewState {
             List<TagDisplayItem> tags,
             String notes
     ) {
+        this(sleepLogId, nightDate, formattedNightDate, fellAsleepTime, wokeUpTime, duration, location,
+                sleptThroughNight, hadDreams, sleepRating, restedRating, awakeningCount, tags,
+                Collections.emptyList(), notes);
+    }
+
+    public SleepLogDetailViewState(
+            long sleepLogId,
+            String nightDate,
+            String formattedNightDate,
+            String fellAsleepTime,
+            String wokeUpTime,
+            String duration,
+            String location,
+            String sleptThroughNight,
+            String hadDreams,
+            String sleepRating,
+            String restedRating,
+            String awakeningCount,
+            List<TagDisplayItem> tags,
+            List<SleepTagCategoryGroup> tagGroups,
+            String notes
+    ) {
         this.sleepLogId = sleepLogId;
         this.nightDate = nightDate;
         this.formattedNightDate = formattedNightDate;
@@ -49,6 +74,7 @@ public class SleepLogDetailViewState {
         this.restedRating = restedRating;
         this.awakeningCount = awakeningCount;
         this.tags = Collections.unmodifiableList(new ArrayList<>(tags));
+        this.tagGroups = Collections.unmodifiableList(new ArrayList<>(tagGroups));
         this.notes = notes;
     }
 
@@ -102,6 +128,10 @@ public class SleepLogDetailViewState {
 
     public List<TagDisplayItem> getTags() {
         return tags;
+    }
+
+    public List<SleepTagCategoryGroup> getTagGroups() {
+        return tagGroups;
     }
 
     public String getNotes() {

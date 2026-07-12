@@ -20,6 +20,7 @@ import com.mhlotto.snoozereviews.ui.AddSleepByDateActivity;
 import com.mhlotto.snoozereviews.ui.BackupRestoreActivity;
 import com.mhlotto.snoozereviews.ui.SettingsActivity;
 import com.mhlotto.snoozereviews.ui.SleepHistoryActivity;
+import com.mhlotto.snoozereviews.ui.SleepTagSettingsActivity;
 import com.mhlotto.snoozereviews.ui.SleepLogDetailActivity;
 import com.mhlotto.snoozereviews.ui.SleepLogFormActivity;
 import com.mhlotto.snoozereviews.ui.SleepStatsActivity;
@@ -53,11 +54,12 @@ public class ManifestSecurityTest {
         assertFalse(activities.get(AddSleepByDateActivity.class.getName()).exported);
         assertFalse(activities.get(BackupRestoreActivity.class.getName()).exported);
         assertFalse(activities.get(SettingsActivity.class.getName()).exported);
+        assertFalse(activities.get(SleepTagSettingsActivity.class.getName()).exported);
     }
 
     @Test
     public void manifestContainsExpectedActivityCount() throws Exception {
-        assertEquals(8, activitiesByName().size());
+        assertEquals(9, activitiesByName().size());
     }
 
     @Test

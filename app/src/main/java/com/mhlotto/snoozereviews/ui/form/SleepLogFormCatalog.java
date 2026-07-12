@@ -21,7 +21,7 @@ public final class SleepLogFormCatalog {
     ));
 
     public static final List<TagCategory> TAG_CATEGORIES = Collections.unmodifiableList(Arrays.asList(
-            new TagCategory(R.string.tag_category_temperature_environment, Arrays.asList(
+            new TagCategory(com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys.ENVIRONMENT, R.string.tag_category_temperature_environment, Arrays.asList(
                     new FormOption(SleepTagKeys.TOO_HOT, R.string.tag_too_hot),
                     new FormOption(SleepTagKeys.TOO_COLD, R.string.tag_too_cold),
                     new FormOption(SleepTagKeys.SWEATY, R.string.tag_sweaty),
@@ -30,7 +30,7 @@ public final class SleepLogFormCatalog {
                     new FormOption(SleepTagKeys.UNCOMFORTABLE, R.string.tag_uncomfortable),
                     new FormOption(SleepTagKeys.INTERRUPTED, R.string.tag_interrupted)
             )),
-            new TagCategory(R.string.tag_category_physical_condition, Arrays.asList(
+            new TagCategory(com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys.PHYSICAL, R.string.tag_category_physical_condition, Arrays.asList(
                     new FormOption(SleepTagKeys.SICK, R.string.tag_sick),
                     new FormOption(SleepTagKeys.CONGESTED, R.string.tag_congested),
                     new FormOption(SleepTagKeys.PAIN, R.string.tag_pain),
@@ -40,7 +40,7 @@ public final class SleepLogFormCatalog {
                     new FormOption(SleepTagKeys.HUNGRY, R.string.tag_hungry),
                     new FormOption(SleepTagKeys.OVERFULL, R.string.tag_overfull)
             )),
-            new TagCategory(R.string.tag_category_sleep_pattern, Arrays.asList(
+            new TagCategory(com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys.SLEEP_PATTERN, R.string.tag_category_sleep_pattern, Arrays.asList(
                     new FormOption(SleepTagKeys.FELL_ASLEEP_QUICKLY, R.string.tag_fell_asleep_quickly),
                     new FormOption(SleepTagKeys.TROUBLE_FALLING_ASLEEP, R.string.tag_trouble_falling_asleep),
                     new FormOption(SleepTagKeys.WOKE_EARLY, R.string.tag_woke_early),
@@ -50,7 +50,7 @@ public final class SleepLogFormCatalog {
                     new FormOption(SleepTagKeys.DEEP_SLEEP, R.string.tag_deep_sleep),
                     new FormOption(SleepTagKeys.TOSSED_AND_TURNED, R.string.tag_tossed_and_turned)
             )),
-            new TagCategory(R.string.tag_category_mind_dreams, Arrays.asList(
+            new TagCategory(com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys.MIND_AND_DREAMS, R.string.tag_category_mind_dreams, Arrays.asList(
                     new FormOption(SleepTagKeys.CALM, R.string.tag_calm),
                     new FormOption(SleepTagKeys.ANXIOUS, R.string.tag_anxious),
                     new FormOption(SleepTagKeys.RACING_THOUGHTS, R.string.tag_racing_thoughts),
@@ -60,7 +60,7 @@ public final class SleepLogFormCatalog {
                     new FormOption(SleepTagKeys.STRESSFUL_DREAMS, R.string.tag_stressful_dreams),
                     new FormOption(SleepTagKeys.NO_DREAM_RECALL, R.string.tag_no_dream_recall)
             )),
-            new TagCategory(R.string.tag_category_morning_result, Arrays.asList(
+            new TagCategory(com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys.MORNING_RESULT, R.string.tag_category_morning_result, Arrays.asList(
                     new FormOption(SleepTagKeys.REFRESHED, R.string.tag_refreshed),
                     new FormOption(SleepTagKeys.GROGGY, R.string.tag_groggy),
                     new FormOption(SleepTagKeys.EXHAUSTED, R.string.tag_exhausted),

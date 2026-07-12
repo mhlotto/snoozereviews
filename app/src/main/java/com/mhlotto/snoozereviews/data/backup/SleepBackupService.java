@@ -6,13 +6,19 @@ import android.os.Looper;
 
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
 import com.mhlotto.snoozereviews.data.dao.CustomSleepLocationDao;
+import com.mhlotto.snoozereviews.data.dao.CustomSleepTagDao;
 import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
 import com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase;
 import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
 import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
 import com.mhlotto.snoozereviews.data.location.SleepLocationNameNormalizer;
+import com.mhlotto.snoozereviews.data.tag.BuiltInSleepTagDuplicateNames;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
+import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
+import com.mhlotto.snoozereviews.data.tag.SleepTagNameNormalizer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -59,6 +65,7 @@ public class SleepBackupService {
     private final SnoozeReviewsDatabase database;
     private final SleepLogDao sleepLogDao;
     private final CustomSleepLocationDao customLocationDao;
+    private final CustomSleepTagDao customTagDao;
     private final SleepBackupCodec codec;
     private final Executor backgroundExecutor;
     private final Executor callbackExecutor;
@@ -84,6 +91,7 @@ public class SleepBackupService {
         this.database = database;
         this.sleepLogDao = database.sleepLogDao();
         this.customLocationDao = database.customSleepLocationDao();
+        this.customTagDao = database.customSleepTagDao();
         this.codec = codec;
         this.backgroundExecutor = backgroundExecutor;
         this.callbackExecutor = callbackExecutor;
@@ -119,9 +127,13 @@ public class SleepBackupService {
         execute(callback, () -> {
             validateDocumentUniqueness(plan.getDocument());
             database.runInTransaction(() -> {
+                for (SleepBackupCustomTag customTag : plan.getDocument().getCustomTags()) {
+                    applyCustomTagDefinition(customTag.getEntity());
+                }
                 for (SleepBackupRecord record : plan.getDocument().getRecords()) {
                     SleepLogEntity imported = record.getSleepLog();
                     ensureCustomLocationRow(imported.getSleepLocation());
+                    ensureCustomTagRows(record.getTagKeys());
                     SleepLogWithTags existing = sleepLogDao.findByNightDate(imported.getNightDate());
                     if (existing == null) {
                         imported.setId(0L);
@@ -134,6 +146,23 @@ public class SleepBackupService {
             });
             return new ImportResult(plan.getSummary());
         });
+    }
+
+    private void applyCustomTagDefinition(CustomSleepTagEntity imported) {
+        CustomSleepTagEntity existing = customTagDao.findByKey(imported.getTagKey());
+        if (existing == null) {
+            customTagDao.insert(imported);
+            return;
+        }
+        customTagDao.replaceByKey(
+                imported.getTagKey(),
+                imported.getDisplayName(),
+                imported.getNormalizedName(),
+                imported.getCategoryKey(),
+                imported.isActive(),
+                imported.getCreatedAt(),
+                imported.getUpdatedAt()
+        );
     }
 
     private void ensureCustomLocationRow(String sleepLocationKey) {
@@ -164,6 +193,44 @@ public class SleepBackupService {
         ));
     }
 
+    private void ensureCustomTagRows(List<String> tagKeys) {
+        for (String tagKey : tagKeys) {
+            ensureCustomTagRow(tagKey);
+        }
+    }
+
+    private void ensureCustomTagRow(String tagKey) {
+        if (!CustomSleepTagKey.isCustomKey(tagKey)) {
+            return;
+        }
+        String displayName = CustomSleepTagKey.decode(tagKey);
+        if (displayName == null) {
+            return;
+        }
+        SleepTagNameNormalizer.CleanedName cleaned = SleepTagNameNormalizer.clean(displayName);
+        if (BuiltInSleepTagDuplicateNames.NORMALIZED_NAMES.contains(cleaned.getNormalizedName())) {
+            return;
+        }
+        CustomSleepTagEntity existingByKey = customTagDao.findByKey(tagKey);
+        if (existingByKey != null) {
+            return;
+        }
+        CustomSleepTagEntity existingByName = customTagDao.findByNormalizedName(cleaned.getNormalizedName());
+        if (existingByName != null) {
+            return;
+        }
+        long now = clock.millis();
+        customTagDao.insert(new CustomSleepTagEntity(
+                tagKey,
+                cleaned.getDisplayName(),
+                cleaned.getNormalizedName(),
+                SleepTagCategoryKeys.OTHER,
+                true,
+                now,
+                now
+        ));
+    }
+
     SleepBackupDocument buildExportDocument() {
         List<SleepLogWithTags> logs = sleepLogDao.listAllNewestFirst();
         List<SleepBackupRecord> records = new ArrayList<>(logs.size());
@@ -174,9 +241,15 @@ public class SleepBackupService {
             }
             records.add(new SleepBackupRecord(logWithTags.getSleepLog(), tagKeys));
         }
+        List<CustomSleepTagEntity> customTagEntities = customTagDao.listAll();
+        List<SleepBackupCustomTag> customTags = new ArrayList<>(customTagEntities.size());
+        for (CustomSleepTagEntity entity : customTagEntities) {
+            customTags.add(new SleepBackupCustomTag(entity));
+        }
         return new SleepBackupDocument(
                 SleepBackupDocument.DATABASE_VERSION,
                 clock.instant(),
+                customTags,
                 records
         );
     }
@@ -193,7 +266,24 @@ public class SleepBackupService {
             localDates.add(local.getSleepLog().getNightDate());
         }
 
-        return ImportPlanSummaryCalculator.calculate(importedDates, localDates);
+        ImportPlanSummary logSummary = ImportPlanSummaryCalculator.calculate(importedDates, localDates);
+        int customTagsToAdd = 0;
+        int customTagsToUpdate = 0;
+        for (SleepBackupCustomTag customTag : document.getCustomTags()) {
+            if (customTagDao.findByKey(customTag.getTagKey()) == null) {
+                customTagsToAdd++;
+            } else {
+                customTagsToUpdate++;
+            }
+        }
+        return new ImportPlanSummary(
+                logSummary.getTotalRecords(),
+                logSummary.getNewRecords(),
+                logSummary.getReplacementRecords(),
+                logSummary.getRetainedLocalRecords(),
+                customTagsToAdd,
+                customTagsToUpdate
+        );
     }
 
     private void validateDocumentUniqueness(SleepBackupDocument document) throws SleepBackupValidationException {

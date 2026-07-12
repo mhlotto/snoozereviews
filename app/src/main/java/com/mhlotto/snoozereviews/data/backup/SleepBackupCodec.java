@@ -1,7 +1,12 @@
 package com.mhlotto.snoozereviews.data.backup;
 
 import com.mhlotto.snoozereviews.data.SleepLogValidator;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
+import com.mhlotto.snoozereviews.data.tag.BuiltInSleepTagDuplicateNames;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
+import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
+import com.mhlotto.snoozereviews.data.tag.SleepTagNameNormalizer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,6 +35,14 @@ public class SleepBackupCodec {
             root.put("version", SleepBackupDocument.VERSION);
             root.put("databaseVersion", document.getDatabaseVersion());
             root.put("exportedAt", document.getExportedAt().toString());
+
+            List<SleepBackupCustomTag> customTags = new ArrayList<>(document.getCustomTags());
+            customTags.sort(Comparator.comparing(SleepBackupCustomTag::getNormalizedName));
+            JSONArray customTagArray = new JSONArray();
+            for (SleepBackupCustomTag customTag : customTags) {
+                customTagArray.put(toJson(customTag));
+            }
+            root.put("customTags", customTagArray);
 
             List<SleepBackupRecord> records = new ArrayList<>(document.getRecords());
             records.sort(Comparator.comparing(SleepBackupRecord::getNightDate));
@@ -72,6 +85,7 @@ public class SleepBackupCodec {
                 throw new SleepBackupValidationException("Invalid database version.");
             }
             Instant exportedAt = parseInstant(requireString(root, "exportedAt"));
+            List<SleepBackupCustomTag> customTags = parseCustomTags(root, version);
             JSONArray logs = requireArray(root, "logs");
             if (logs.length() > MAX_LOG_RECORDS) {
                 throw new SleepBackupValidationException("Backup contains too many records.");
@@ -90,10 +104,22 @@ public class SleepBackupCodec {
                 }
                 records.add(record);
             }
-            return new SleepBackupDocument(databaseVersion, exportedAt, records);
+            return new SleepBackupDocument(databaseVersion, exportedAt, customTags, records);
         } catch (JSONException exception) {
             throw new SleepBackupValidationException("Malformed JSON.", exception);
         }
+    }
+
+    private JSONObject toJson(SleepBackupCustomTag customTag) throws JSONException {
+        CustomSleepTagEntity entity = customTag.getEntity();
+        JSONObject object = new JSONObject();
+        object.put("tagKey", entity.getTagKey());
+        object.put("displayName", entity.getDisplayName());
+        object.put("categoryKey", entity.getCategoryKey());
+        object.put("isActive", entity.isActive());
+        object.put("createdAt", entity.getCreatedAt());
+        object.put("updatedAt", entity.getUpdatedAt());
+        return object;
     }
 
     private JSONObject toJson(SleepBackupRecord record) throws JSONException {
@@ -119,6 +145,77 @@ public class SleepBackupCodec {
         }
         object.put("tags", tags);
         return object;
+    }
+
+    private List<SleepBackupCustomTag> parseCustomTags(JSONObject root, int version)
+            throws JSONException, SleepBackupValidationException {
+        if (version == 1) {
+            return new ArrayList<>();
+        }
+        JSONArray array = requireArray(root, "customTags");
+        List<SleepBackupCustomTag> customTags = new ArrayList<>(array.length());
+        Set<String> keys = new HashSet<>();
+        Set<String> names = new HashSet<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.optJSONObject(i);
+            if (object == null) {
+                throw new SleepBackupValidationException("Custom tag definition must be an object.");
+            }
+            CustomSleepTagEntity entity = parseCustomTag(object);
+            if (!keys.add(entity.getTagKey())) {
+                throw new SleepBackupValidationException("Backup contains duplicate custom tag keys.");
+            }
+            if (!names.add(entity.getNormalizedName())) {
+                throw new SleepBackupValidationException("Backup contains duplicate custom tag names.");
+            }
+            customTags.add(new SleepBackupCustomTag(entity));
+        }
+        return customTags;
+    }
+
+    private CustomSleepTagEntity parseCustomTag(JSONObject object)
+            throws JSONException, SleepBackupValidationException {
+        String tagKey = requireString(object, "tagKey");
+        String displayName = requireString(object, "displayName");
+        String categoryKey = requireString(object, "categoryKey");
+        Boolean active = requireBoolean(object, "isActive");
+        long createdAt = requireLong(object, "createdAt");
+        long updatedAt = requireLong(object, "updatedAt");
+
+        if (!CustomSleepTagKey.isCustomKey(tagKey)) {
+            throw new SleepBackupValidationException("Invalid custom tag key.");
+        }
+        String decodedName = CustomSleepTagKey.decode(tagKey);
+        if (decodedName == null) {
+            throw new SleepBackupValidationException("Invalid custom tag key.");
+        }
+        SleepTagNameNormalizer.CleanedName cleaned;
+        try {
+            cleaned = SleepTagNameNormalizer.clean(displayName);
+        } catch (IllegalArgumentException exception) {
+            throw new SleepBackupValidationException("Invalid custom tag name.", exception);
+        }
+        if (!cleaned.getDisplayName().equals(decodedName)) {
+            throw new SleepBackupValidationException("Custom tag key does not match display name.");
+        }
+        if (BuiltInSleepTagDuplicateNames.NORMALIZED_NAMES.contains(cleaned.getNormalizedName())) {
+            throw new SleepBackupValidationException("Custom tag duplicates a built-in tag.");
+        }
+        if (!SleepTagCategoryKeys.isValid(categoryKey)) {
+            throw new SleepBackupValidationException("Invalid custom tag category.");
+        }
+        if (createdAt < 0L || updatedAt < 0L || updatedAt < createdAt) {
+            throw new SleepBackupValidationException("Invalid custom tag timestamps.");
+        }
+        return new CustomSleepTagEntity(
+                tagKey,
+                cleaned.getDisplayName(),
+                cleaned.getNormalizedName(),
+                categoryKey,
+                active,
+                createdAt,
+                updatedAt
+        );
     }
 
     private SleepBackupRecord parseRecord(JSONObject object) throws JSONException, SleepBackupValidationException {
@@ -195,6 +292,13 @@ public class SleepBackupCodec {
             throw new SleepBackupValidationException("Missing or invalid integer field: " + key);
         }
         return object.getInt(key);
+    }
+
+    private Boolean requireBoolean(JSONObject object, String key) throws JSONException, SleepBackupValidationException {
+        if (!object.has(key) || object.isNull(key) || !(object.get(key) instanceof Boolean)) {
+            throw new SleepBackupValidationException("Missing or invalid Boolean field: " + key);
+        }
+        return object.getBoolean(key);
     }
 
     private long requireLong(JSONObject object, String key) throws JSONException, SleepBackupValidationException {

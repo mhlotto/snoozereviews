@@ -29,9 +29,13 @@ import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.data.SleepLogRepository;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
 import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
 import com.mhlotto.snoozereviews.data.location.CustomSleepLocationRepository;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
+import com.mhlotto.snoozereviews.data.tag.CustomSleepTagRepository;
+import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
 import com.mhlotto.snoozereviews.databinding.ActivitySleepLogFormBinding;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailFormatter;
 import com.mhlotto.snoozereviews.ui.form.FormOption;
@@ -43,6 +47,8 @@ import com.mhlotto.snoozereviews.ui.form.TagCategory;
 import com.mhlotto.snoozereviews.ui.form.TimeOfDayHelper;
 import com.mhlotto.snoozereviews.ui.location.SleepLocationLabelResolver;
 import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagCategoryCatalog;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagLabelResolver;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -75,6 +81,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private ActivitySleepLogFormBinding binding;
     private SleepLogRepository repository;
     private CustomSleepLocationRepository customLocationRepository;
+    private CustomSleepTagRepository customTagRepository;
     private NightDatePolicy nightDatePolicy;
     private SleepLogFormState currentState;
     private SleepLogFormState initialState;
@@ -88,6 +95,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private boolean navigationInProgress;
     private boolean discardDialogShowing;
     private List<CustomSleepLocationEntity> activeCustomLocations = new ArrayList<>();
+    private List<CustomSleepTagEntity> customTags = new ArrayList<>();
 
     public static Intent newCreateIntent(Context context, String nightDate) {
         Intent intent = new Intent(context, SleepLogFormActivity.class);
@@ -112,10 +120,12 @@ public class SleepLogFormActivity extends AppCompatActivity {
         repository = new SleepLogRepository(this);
         SleepLogDetailFormatter.LabelResolver labels = labelResolver();
         customLocationRepository = new CustomSleepLocationRepository(this, SleepLocationLabelResolver.fixedDuplicateNames(labels));
+        customTagRepository = new CustomSleepTagRepository(this, SleepTagLabelResolver.builtInDuplicateNames(labels));
         nightDatePolicy = new NightDatePolicy(Clock.systemDefaultZone());
 
         buildChoiceControls();
         loadCustomLocations();
+        loadCustomTags();
         wireEvents();
         configureBackHandling();
 
@@ -137,6 +147,9 @@ public class SleepLogFormActivity extends AppCompatActivity {
         }
         if (customLocationRepository != null) {
             customLocationRepository.shutdownBackgroundExecutor();
+        }
+        if (customTagRepository != null) {
+            customTagRepository.shutdownBackgroundExecutor();
         }
         super.onDestroy();
     }
@@ -274,6 +287,28 @@ public class SleepLogFormActivity extends AppCompatActivity {
         });
     }
 
+    private void loadCustomTags() {
+        customTagRepository.listAll(new CustomSleepTagRepository.Callback<>() {
+            @Override
+            public void onSuccess(List<CustomSleepTagEntity> result) {
+                if (isInactive()) {
+                    return;
+                }
+                customTags = new ArrayList<>(result);
+                if (currentState != null) {
+                    renderFromState();
+                }
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                if (!isInactive()) {
+                    Log.e(TAG, "Failed to load custom sleep tags", error);
+                }
+            }
+        });
+    }
+
     private void addTriStateChips(ChipGroup chipGroup) {
         addChoiceChip(chipGroup, null, getString(R.string.answer_not_answered), true);
         addChoiceChip(chipGroup, Boolean.TRUE, getString(R.string.answer_yes), true);
@@ -310,14 +345,69 @@ public class SleepLogFormActivity extends AppCompatActivity {
                 knownKeys.add(option.getKey());
                 addChoiceChip(chipGroup, option.getKey(), getString(option.getLabelResId()), false);
             }
+            for (CustomSleepTagEntity tag : customTagsForCategory(category.getKey(), true)) {
+                knownKeys.add(tag.getTagKey());
+                addChoiceChip(chipGroup, tag.getTagKey(), tag.getDisplayName(), false);
+            }
         }
 
         for (String tagKey : unknownSelectedTags) {
             if (!knownKeys.contains(tagKey)) {
-                ChipGroup chipGroup = findOrCreateUnknownTagGroup();
-                addChoiceChip(chipGroup, tagKey, getString(R.string.unknown_tag_format, tagKey), false);
+                CustomSleepTagEntity customTag = findCustomTag(tagKey);
+                if (customTag != null || CustomSleepTagKey.isCustomKey(tagKey)) {
+                    String category = customTag == null ? SleepTagCategoryKeys.OTHER : customTag.getCategoryKey();
+                    ChipGroup chipGroup = findOrCreateCustomFallbackGroup(category);
+                    String label = customTag == null
+                            ? customTagFallbackLabel(tagKey)
+                            : getString(R.string.removed_tag_format, customTag.getDisplayName());
+                    addChoiceChip(chipGroup, tagKey, label, false);
+                } else {
+                    ChipGroup chipGroup = findOrCreateUnknownTagGroup();
+                    addChoiceChip(chipGroup, tagKey, getString(R.string.unknown_tag_format, tagKey), false);
+                }
             }
         }
+    }
+
+    private List<CustomSleepTagEntity> customTagsForCategory(String categoryKey, boolean activeOnly) {
+        List<CustomSleepTagEntity> result = new ArrayList<>();
+        for (CustomSleepTagEntity tag : customTags) {
+            if ((!activeOnly || tag.isActive()) && categoryKey.equals(tag.getCategoryKey())) {
+                result.add(tag);
+            }
+        }
+        result.sort(java.util.Comparator.comparing(CustomSleepTagEntity::getNormalizedName));
+        return result;
+    }
+
+    private CustomSleepTagEntity findCustomTag(String tagKey) {
+        for (CustomSleepTagEntity tag : customTags) {
+            if (tag.getTagKey().equals(tagKey)) {
+                return tag;
+            }
+        }
+        return null;
+    }
+
+    private ChipGroup findOrCreateCustomFallbackGroup(String categoryKey) {
+        String groupTag = "customFallback:" + categoryKey;
+        for (int i = 0; i < binding.tagSectionsContainer.getChildCount(); i++) {
+            View child = binding.tagSectionsContainer.getChildAt(i);
+            if (child instanceof ChipGroup && groupTag.equals(child.getTag())) {
+                return (ChipGroup) child;
+            }
+        }
+        TextView heading = new TextView(this);
+        heading.setText(SleepTagCategoryCatalog.labelFor(categoryKey));
+        heading.setTextAppearance(R.style.TextAppearance_SnoozeReviews_Label);
+        heading.setTextColor(resolveColor(com.google.android.material.R.attr.colorOnSurface));
+        binding.tagSectionsContainer.addView(heading);
+        ChipGroup chipGroup = new ChipGroup(this);
+        chipGroup.setSingleSelection(false);
+        applyChipGroupSpacing(chipGroup);
+        chipGroup.setTag(groupTag);
+        binding.tagSectionsContainer.addView(chipGroup);
+        return chipGroup;
     }
 
     private ChipGroup findOrCreateUnknownTagGroup() {
@@ -869,9 +959,23 @@ public class SleepLogFormActivity extends AppCompatActivity {
                 known.add(option.getKey());
             }
         }
+        for (CustomSleepTagEntity tag : customTags) {
+            if (!tag.isActive()) {
+                continue;
+            }
+            known.add(tag.getTagKey());
+        }
         Set<String> unknown = new HashSet<>(selectedTags);
         unknown.removeAll(known);
         return unknown;
+    }
+
+    private String customTagFallbackLabel(String key) {
+        String decoded = CustomSleepTagKey.decode(key);
+        if (decoded == null) {
+            return getString(R.string.unknown_tag_format, key);
+        }
+        return decoded;
     }
 
     private String getText(Editable editable) {

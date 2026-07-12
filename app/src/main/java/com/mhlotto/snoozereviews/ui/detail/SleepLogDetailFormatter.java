@@ -1,6 +1,7 @@
 package com.mhlotto.snoozereviews.ui.detail;
 
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepTagEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
 import com.mhlotto.snoozereviews.ui.form.FormOption;
@@ -8,6 +9,8 @@ import com.mhlotto.snoozereviews.ui.form.SleepLogFormCatalog;
 import com.mhlotto.snoozereviews.ui.form.TagCategory;
 import com.mhlotto.snoozereviews.ui.form.TimeOfDayHelper;
 import com.mhlotto.snoozereviews.ui.location.SleepLocationLabelResolver;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagCategoryGrouper;
+import com.mhlotto.snoozereviews.ui.tag.SleepTagLabelResolver;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -41,7 +44,16 @@ public class SleepLogDetailFormatter {
     }
 
     public SleepLogDetailViewState format(SleepLogWithTags sleepLogWithTags) {
+        return format(sleepLogWithTags, Collections.emptyList());
+    }
+
+    public SleepLogDetailViewState format(SleepLogWithTags sleepLogWithTags, List<CustomSleepTagEntity> customTags) {
         SleepLogEntity log = sleepLogWithTags.getSleepLog();
+        List<TagDisplayItem> tags = formatTags(sleepLogWithTags.getTags());
+        List<String> selectedTagKeys = new ArrayList<>();
+        for (SleepLogTagEntity tag : sleepLogWithTags.getTags()) {
+            selectedTagKeys.add(tag.getTagKey());
+        }
         return new SleepLogDetailViewState(
                 log.getId(),
                 log.getNightDate(),
@@ -56,7 +68,8 @@ public class SleepLogDetailFormatter {
                 formatRating(log.getSleepRating()),
                 formatRating(log.getRestedRating()),
                 formatAwakeningCount(log.getAwakeningCount()),
-                formatTags(sleepLogWithTags.getTags()),
+                tags,
+                new SleepTagCategoryGrouper(labels, locale).group(selectedTagKeys, customTags),
                 formatNotes(log.getNotes())
         );
     }
@@ -93,17 +106,25 @@ public class SleepLogDetailFormatter {
         List<String> sortedKeys = new ArrayList<>(keys);
         sortedKeys.sort(Comparator
                 .comparingInt((String key) -> knownOrder.getOrDefault(key, Integer.MAX_VALUE))
-                .thenComparing(key -> key));
+                .thenComparing(key -> tagSortLabel(key, labelIds)));
 
         List<TagDisplayItem> items = new ArrayList<>();
         for (String key : sortedKeys) {
             Integer labelId = labelIds.get(key);
             String label = labelId == null
-                    ? labels.getString(com.mhlotto.snoozereviews.R.string.unknown_tag_detail_format, key)
+                    ? SleepTagLabelResolver.resolve(key, labels)
                     : labels.getString(labelId);
             items.add(new TagDisplayItem(key, label));
         }
         return Collections.unmodifiableList(items);
+    }
+
+    private String tagSortLabel(String key, Map<String, Integer> labelIds) {
+        Integer labelId = labelIds.get(key);
+        String label = labelId == null
+                ? SleepTagLabelResolver.resolve(key, labels)
+                : labels.getString(labelId);
+        return label.toLowerCase(locale);
     }
 
     private String formatTime(Integer minute) {

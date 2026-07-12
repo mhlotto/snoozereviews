@@ -56,6 +56,7 @@ public class SettingsActivity extends AppCompatActivity {
         repository = new CustomSleepLocationRepository(this, SleepLocationLabelResolver.fixedDuplicateNames(labels));
 
         renderBuiltInLocations();
+        binding.manageTagsButton.setOnClickListener(view -> startActivity(SleepTagSettingsActivity.newIntent(this)));
         binding.addLocationButton.setOnClickListener(view -> addLocation());
         binding.locationNameInput.setOnEditorActionListener((view, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_DONE) {
