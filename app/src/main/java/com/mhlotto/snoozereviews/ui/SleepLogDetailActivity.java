@@ -57,6 +57,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
 
         binding = ActivitySleepLogDetailBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SystemBarInsets.applyToRoot(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setNavigationOnClickListener(view -> finish());
 
@@ -197,7 +198,7 @@ public class SleepLogDetailActivity extends AppCompatActivity {
             binding.noTags.setVisibility(View.GONE);
             binding.tags.setVisibility(View.VISIBLE);
             for (TagDisplayItem item : state.getTags()) {
-                Chip chip = new Chip(this);
+                Chip chip = (Chip) getLayoutInflater().inflate(R.layout.view_choice_chip, binding.tags, false);
                 chip.setText(item.getLabel());
                 chip.setCheckable(false);
                 chip.setClickable(false);

@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/backup_privacy_note"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.card.MaterialCardView
@@ -53,7 +53,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/export_backup"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                             android:textColor="?attr/colorOnSurface" />
 
                         <TextView
@@ -61,7 +61,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"
                             android:text="@string/export_backup_description"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <com.google.android.material.button.MaterialButton
@@ -69,7 +69,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_medium"
-                            android:minHeight="48dp"
+                            android:minHeight="@dimen/touch_target_min"
                             android:text="@string/export_backup" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -90,7 +90,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/import_backup"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                             android:textColor="?attr/colorOnSurface" />
 
                         <TextView
@@ -98,7 +98,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"
                             android:text="@string/import_backup_description"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                             android:textColor="?attr/colorOnSurfaceVariant" />
 
                         <com.google.android.material.button.MaterialButton
@@ -106,7 +106,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_medium"
-                            android:minHeight="48dp"
+                            android:minHeight="@dimen/touch_target_min"
                             android:text="@string/import_backup" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
@@ -125,7 +125,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                     android:visibility="gone" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

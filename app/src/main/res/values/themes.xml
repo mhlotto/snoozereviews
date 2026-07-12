@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.SnoozeReviews" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.SnoozeReviews" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/snooze_primary</item>
         <item name="colorOnPrimary">@color/snooze_on_primary</item>
         <item name="colorPrimaryContainer">@color/snooze_primary_container</item>
@@ -16,7 +16,11 @@
         <item name="colorOutline">@color/snooze_outline</item>
         <item name="colorError">@color/snooze_error</item>
         <item name="colorOnError">@color/snooze_on_primary</item>
-        <item name="android:fontFamily">sans</item>
+        <item name="chipStyle">@style/Widget.SnoozeReviews.ChoiceChip</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.SnoozeReviews.Headline</item>
+        <item name="textAppearanceTitleMedium">@style/TextAppearance.SnoozeReviews.SectionTitle</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.SnoozeReviews.Body</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.SnoozeReviews.Supporting</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:statusBarColor">@color/snooze_surface</item>
         <item name="android:navigationBarColor">@color/snooze_surface</item>
@@ -32,7 +36,56 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_marginTop">@dimen/spacing_small</item>
-        <item name="android:textAppearance">?attr/textAppearanceBodyLarge</item>
+        <item name="android:textAppearance">@style/TextAppearance.SnoozeReviews.Body</item>
         <item name="android:textColor">?attr/colorOnSurfaceVariant</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.Headline" parent="TextAppearance.Material3.HeadlineSmall">
+        <item name="android:textSize">24sp</item>
+        <item name="android:lineHeight">32sp</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.SectionTitle" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">18sp</item>
+        <item name="android:lineHeight">26sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.Body" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">24sp</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.Supporting" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.Label" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">22sp</item>
+    </style>
+
+    <style name="TextAppearance.SnoozeReviews.Chip" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textSize">14sp</item>
+        <item name="android:lineHeight">20sp</item>
+    </style>
+
+    <style name="Widget.SnoozeReviews.ChoiceChip" parent="Widget.Material3.Chip.Filter">
+        <item name="android:minHeight">@dimen/touch_target_min</item>
+        <item name="android:textAppearance">@style/TextAppearance.SnoozeReviews.Chip</item>
+        <item name="chipMinHeight">@dimen/touch_target_min</item>
+        <item name="ensureMinTouchTargetSize">true</item>
+        <item name="chipStartPadding">@dimen/chip_padding_horizontal</item>
+        <item name="chipEndPadding">@dimen/chip_padding_horizontal</item>
+        <item name="textStartPadding">4dp</item>
+        <item name="textEndPadding">4dp</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">@color/snooze_choice_chip_stroke</item>
+        <item name="chipBackgroundColor">@color/snooze_choice_chip_background</item>
+        <item name="android:textColor">@color/snooze_choice_chip_text</item>
+        <item name="checkedIconVisible">true</item>
+        <item name="checkedIconTint">@color/snooze_choice_chip_icon</item>
+        <item name="rippleColor">?attr/colorPrimary</item>
     </style>
 </resources>

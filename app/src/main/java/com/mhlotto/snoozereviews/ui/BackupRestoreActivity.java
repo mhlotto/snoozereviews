@@ -51,6 +51,7 @@ public class BackupRestoreActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivityBackupRestoreBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SystemBarInsets.applyToRoot(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setNavigationOnClickListener(view -> finish());
 

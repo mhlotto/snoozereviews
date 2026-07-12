@@ -47,6 +47,7 @@ public class SleepHistoryActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivitySleepHistoryBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SystemBarInsets.applyToRoot(binding.getRoot());
         setSupportActionBar(binding.toolbar);
         binding.toolbar.setNavigationOnClickListener(view -> finish());
 

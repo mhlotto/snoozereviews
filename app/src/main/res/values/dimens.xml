@@ -4,4 +4,8 @@
     <dimen name="spacing_medium">16dp</dimen>
     <dimen name="spacing_screen">24dp</dimen>
     <dimen name="elevation_toolbar">0dp</dimen>
+    <dimen name="touch_target_min">48dp</dimen>
+    <dimen name="chip_spacing_horizontal">8dp</dimen>
+    <dimen name="chip_spacing_vertical">8dp</dimen>
+    <dimen name="chip_padding_horizontal">12dp</dimen>
 </resources>

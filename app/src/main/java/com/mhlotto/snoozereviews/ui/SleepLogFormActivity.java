@@ -77,6 +77,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private int loadGeneration;
     private int saveGeneration;
     private boolean isSaving;
+    private boolean destroyed;
     private boolean suppressChangeCallbacks;
     private boolean navigationInProgress;
     private boolean discardDialogShowing;
@@ -98,6 +99,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         binding = ActivitySleepLogFormBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
+        SystemBarInsets.applyToRoot(binding.getRoot());
         setSupportActionBar(binding.toolbar);
 
         repository = new SleepLogRepository(this);
@@ -119,6 +121,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        destroyed = true;
         if (repository != null) {
             repository.shutdownBackgroundExecutor();
         }
@@ -186,7 +189,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         repository.findSleepLogById(editSleepLogId, new SleepLogRepository.Callback<>() {
             @Override
             public void onSuccess(SleepLogWithTags result) {
-                if (isFinishing() || requestGeneration != loadGeneration) {
+                if (isInactive() || requestGeneration != loadGeneration) {
                     return;
                 }
                 if (result == null) {
@@ -201,7 +204,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable error) {
-                if (isFinishing() || requestGeneration != loadGeneration) {
+                if (isInactive() || requestGeneration != loadGeneration) {
                     return;
                 }
                 Log.e(TAG, "Failed to load sleep log", error);
@@ -249,13 +252,14 @@ public class SleepLogFormActivity extends AppCompatActivity {
         for (TagCategory category : SleepLogFormCatalog.TAG_CATEGORIES) {
             TextView heading = new TextView(this);
             heading.setText(category.getTitleResId());
-            heading.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1);
+            heading.setTextAppearance(R.style.TextAppearance_SnoozeReviews_Label);
             heading.setTextColor(resolveColor(com.google.android.material.R.attr.colorOnSurface));
             heading.setPadding(0, getResources().getDimensionPixelSize(R.dimen.spacing_small), 0, 0);
             binding.tagSectionsContainer.addView(heading);
 
             ChipGroup chipGroup = new ChipGroup(this);
             chipGroup.setSingleSelection(false);
+            applyChipGroupSpacing(chipGroup);
             chipGroup.setTag("tagGroup");
             binding.tagSectionsContainer.addView(chipGroup, new LinearLayout.LayoutParams(
                     LinearLayout.LayoutParams.MATCH_PARENT,
@@ -285,29 +289,35 @@ public class SleepLogFormActivity extends AppCompatActivity {
         }
         TextView heading = new TextView(this);
         heading.setText(getString(R.string.unknown_tag_format, ""));
-        heading.setTextAppearance(com.google.android.material.R.style.TextAppearance_MaterialComponents_Body1);
+        heading.setTextAppearance(R.style.TextAppearance_SnoozeReviews_Label);
         heading.setTextColor(resolveColor(com.google.android.material.R.attr.colorOnSurface));
         binding.tagSectionsContainer.addView(heading);
         ChipGroup chipGroup = new ChipGroup(this);
         chipGroup.setSingleSelection(false);
+        applyChipGroupSpacing(chipGroup);
         chipGroup.setTag("unknownTagGroup");
         binding.tagSectionsContainer.addView(chipGroup);
         return chipGroup;
     }
 
     private Chip addChoiceChip(ChipGroup chipGroup, Object value, String label, boolean singleChoice) {
-        Chip chip = new Chip(this);
+        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.view_choice_chip, chipGroup, false);
         chip.setId(View.generateViewId());
         chip.setText(label);
         chip.setCheckable(true);
         chip.setClickable(true);
         chip.setTag(value);
-        chip.setMinHeight(48);
+        chip.setMinHeight(getResources().getDimensionPixelSize(R.dimen.touch_target_min));
         chipGroup.addView(chip);
         if (singleChoice && chipGroup.getCheckedChipId() == View.NO_ID) {
             chip.setChecked(true);
         }
         return chip;
+    }
+
+    private void applyChipGroupSpacing(ChipGroup chipGroup) {
+        chipGroup.setChipSpacingHorizontalResource(R.dimen.chip_spacing_horizontal);
+        chipGroup.setChipSpacingVerticalResource(R.dimen.chip_spacing_vertical);
     }
 
     private void wireEvents() {
@@ -414,7 +424,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
             repository.createSleepLog(entity, tagKeys, new SleepLogRepository.Callback<>() {
                 @Override
                 public void onSuccess(Long result) {
-                    if (isFinishing() || requestGeneration != saveGeneration) {
+                    if (isInactive() || requestGeneration != saveGeneration) {
                         return;
                     }
                     setSaving(false);
@@ -433,7 +443,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
             repository.updateSleepLog(entity, tagKeys, new SleepLogRepository.Callback<>() {
                 @Override
                 public void onSuccess(Void result) {
-                    if (isFinishing() || requestGeneration != saveGeneration) {
+                    if (isInactive() || requestGeneration != saveGeneration) {
                         return;
                     }
                     setSaving(false);
@@ -450,7 +460,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
     }
 
     private void handleSaveError(Throwable error, int requestGeneration) {
-        if (isFinishing() || requestGeneration != saveGeneration) {
+        if (isInactive() || requestGeneration != saveGeneration) {
             return;
         }
         Log.e(TAG, "Failed to save sleep log", error);
@@ -649,7 +659,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         editSleepLogId = bundle.getLong(EXTRA_SLEEP_LOG_ID, 0L);
         loadGeneration = bundle.getInt(STATE_LOAD_GENERATION, 0);
         saveGeneration = bundle.getInt(STATE_SAVE_GENERATION, 0);
-        isSaving = bundle.getBoolean(STATE_IS_SAVING, false);
+        isSaving = false;
         currentState = getState(bundle, STATE_CURRENT_PREFIX);
         initialState = getState(bundle, STATE_INITIAL_PREFIX);
         binding.toolbar.setTitle(MODE_EDIT.equals(mode) ? R.string.edit_sleep_log : R.string.log_sleep);
@@ -826,6 +836,10 @@ public class SleepLogFormActivity extends AppCompatActivity {
         } catch (DateTimeParseException exception) {
             return false;
         }
+    }
+
+    private boolean isInactive() {
+        return destroyed || isFinishing();
     }
 
     private abstract static class SimpleTextWatcher implements TextWatcher {

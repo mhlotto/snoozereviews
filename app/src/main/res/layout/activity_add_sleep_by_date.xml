@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/add_sleep_by_date"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Headline"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:text="@string/add_by_date_explanation"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <TextView
@@ -50,16 +50,16 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_screen"
                     android:text="@string/night_date_label"
-                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                     android:textColor="?attr/colorOnSurface" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/date_button"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:textAlignment="viewStart" />
 
                 <TextView
@@ -68,7 +68,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:text="@string/add_by_date_lookup_error"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                     android:textColor="?attr/colorError"
                     android:visibility="gone" />
 
@@ -84,7 +84,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/add_by_date_existing_log_message"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                         android:textColor="?attr/colorOnSurface" />
 
                     <LinearLayout
@@ -97,16 +97,16 @@
                             android:id="@+id/view_log_button"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:minHeight="48dp"
+                            android:minHeight="@dimen/touch_target_min"
                             android:text="@string/view_log" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/choose_another_date_button"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="@dimen/spacing_small"
-                            android:minHeight="48dp"
+                            android:minHeight="@dimen/touch_target_min"
                             android:text="@string/choose_another_date" />
                     </LinearLayout>
                 </LinearLayout>
@@ -125,16 +125,16 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_screen"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/continue_action" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/retry_button"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.Material3.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_small"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/retry"
                     android:visibility="gone" />
             </LinearLayout>

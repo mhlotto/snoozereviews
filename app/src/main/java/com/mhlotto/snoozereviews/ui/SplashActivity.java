@@ -13,7 +13,7 @@ import androidx.core.splashscreen.SplashScreen;
 import com.mhlotto.snoozereviews.data.LastNightDateCalculator;
 import com.mhlotto.snoozereviews.data.SleepLogRepository;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
-import com.mhlotto.snoozereviews.databinding.ActivitySplashErrorBinding;
+import com.mhlotto.snoozereviews.databinding.ActivitySplashBinding;
 import com.mhlotto.snoozereviews.ui.launch.LaunchCoordinator;
 import com.mhlotto.snoozereviews.ui.launch.LaunchDestination;
 import com.mhlotto.snoozereviews.ui.launch.LaunchRoute;
@@ -23,14 +23,12 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
     private static final long MINIMUM_SPLASH_DURATION_MILLIS = 2500L;
 
     private final Handler handler = new Handler(Looper.getMainLooper());
-    private boolean keepSplashOnScreen = true;
     private boolean destroyed;
-    private boolean errorContentShown;
     private long startupElapsedMillis;
     private LaunchCoordinator coordinator;
     private LastNightDateCalculator lastNightDateCalculator;
     private SleepLogRepository sleepLogRepository;
-    private ActivitySplashErrorBinding errorBinding;
+    private ActivitySplashBinding binding;
     private final Runnable minimumDurationRunnable = () -> {
         if (!destroyed) {
             coordinator.onMinimumDurationElapsed();
@@ -39,15 +37,17 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SplashScreen splashScreen = SplashScreen.installSplashScreen(this);
-        splashScreen.setKeepOnScreenCondition(() -> keepSplashOnScreen);
-
+        SplashScreen.installSplashScreen(this);
         super.onCreate(savedInstanceState);
+        binding = ActivitySplashBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        SystemBarInsets.applyToView(binding.errorContent);
 
         startupElapsedMillis = SystemClock.elapsedRealtime();
         coordinator = new LaunchCoordinator(this);
         lastNightDateCalculator = new LastNightDateCalculator();
         sleepLogRepository = new SleepLogRepository(this);
+        binding.retryButton.setOnClickListener(view -> startRetry());
 
         startInitialLookup();
     }
@@ -68,7 +68,6 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
             return;
         }
 
-        keepSplashOnScreen = false;
         Intent intent;
         if (route.getDestination() == LaunchDestination.CREATE_LAST_NIGHT_LOG) {
             intent = SleepLogFormActivity.newCreateIntent(this, route.getNightDate());
@@ -86,12 +85,10 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
         }
 
         Log.e(TAG, "Sleep log lookup failed during launch", error);
-        keepSplashOnScreen = false;
         showErrorState();
     }
 
     private void startInitialLookup() {
-        keepSplashOnScreen = true;
         long elapsed = SystemClock.elapsedRealtime() - startupElapsedMillis;
         long remainingMillis = Math.max(0L, MINIMUM_SPLASH_DURATION_MILLIS - elapsed);
         handler.postDelayed(minimumDurationRunnable, remainingMillis);
@@ -100,9 +97,9 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
 
     private void startRetry() {
         coordinator.startRetry();
-        if (errorBinding != null) {
-            errorBinding.retryButton.setEnabled(false);
-        }
+        binding.retryButton.setEnabled(false);
+        binding.errorContent.setVisibility(android.view.View.GONE);
+        binding.splashImage.setVisibility(android.view.View.VISIBLE);
         startLookup();
     }
 
@@ -134,12 +131,8 @@ public class SplashActivity extends AppCompatActivity implements LaunchCoordinat
     }
 
     private void showErrorState() {
-        if (!errorContentShown) {
-            errorBinding = ActivitySplashErrorBinding.inflate(getLayoutInflater());
-            setContentView(errorBinding.getRoot());
-            errorContentShown = true;
-            errorBinding.retryButton.setOnClickListener(view -> startRetry());
-        }
-        errorBinding.retryButton.setEnabled(true);
+        binding.splashImage.setVisibility(android.view.View.GONE);
+        binding.errorContent.setVisibility(android.view.View.VISIBLE);
+        binding.retryButton.setEnabled(true);
     }
 }

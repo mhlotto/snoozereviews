@@ -34,7 +34,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/sleep_statistics"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Headline"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
@@ -42,7 +42,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:text="@string/stats_placeholder_message"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.card.MaterialCardView
@@ -61,7 +61,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:text="@string/stats_planned_title"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                             android:textColor="?attr/colorOnSurface" />
 
                         <TextView
@@ -69,7 +69,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"
                             android:text="@string/stats_planned_items"
-                            android:textAppearance="?attr/textAppearanceBodyMedium"
+                            android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                             android:textColor="?attr/colorOnSurfaceVariant" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>

@@ -20,7 +20,7 @@
             android:id="@+id/date"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
             android:textColor="?attr/colorOnSurface" />
 
         <TextView
@@ -28,7 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
+            android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <TextView
@@ -36,7 +36,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <TextView
@@ -44,7 +44,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/spacing_small"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
         <LinearLayout

@@ -81,7 +81,8 @@ public class SleepHistoryAdapter extends ListAdapter<SleepHistoryItem, SleepHist
         private void bindTags(SleepHistoryItem item) {
             binding.tagPreview.removeAllViews();
             for (String label : item.getTagLabels()) {
-                Chip chip = new Chip(binding.tagPreview.getContext());
+                Chip chip = (Chip) LayoutInflater.from(binding.tagPreview.getContext())
+                        .inflate(R.layout.view_choice_chip, binding.tagPreview, false);
                 chip.setText(label);
                 chip.setCheckable(false);
                 chip.setClickable(false);
@@ -89,7 +90,8 @@ public class SleepHistoryAdapter extends ListAdapter<SleepHistoryItem, SleepHist
                 binding.tagPreview.addView(chip);
             }
             if (item.getRemainingTagCount() > 0) {
-                Chip chip = new Chip(binding.tagPreview.getContext());
+                Chip chip = (Chip) LayoutInflater.from(binding.tagPreview.getContext())
+                        .inflate(R.layout.view_choice_chip, binding.tagPreview, false);
                 chip.setText(binding.tagPreview.getResources().getString(
                         R.string.history_tag_overflow_format,
                         item.getRemainingTagCount()

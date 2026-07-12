@@ -43,7 +43,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
                     android:text="@string/loading_sleep_log"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
 
@@ -62,7 +62,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="@string/form_load_error_title"
-                    android:textAppearance="?attr/textAppearanceHeadlineSmall"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Headline"
                     android:textColor="?attr/colorOnSurface" />
 
                 <TextView
@@ -72,7 +72,7 @@
                     android:layout_marginTop="@dimen/spacing_small"
                     android:gravity="center"
                     android:text="@string/form_load_error_message"
-                    android:textAppearance="?attr/textAppearanceBodyLarge"
+                    android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
                 <com.google.android.material.button.MaterialButton
@@ -80,7 +80,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="@dimen/spacing_medium"
-                    android:minHeight="48dp"
+                    android:minHeight="@dimen/touch_target_min"
                     android:text="@string/retry" />
             </LinearLayout>
 
@@ -101,12 +101,12 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/form_section_date"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/night_date_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
@@ -126,13 +126,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_location"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/location_chip_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="@dimen/chip_spacing_horizontal"
+                        app:chipSpacingVertical="@dimen/chip_spacing_vertical"
                         android:layout_marginTop="@dimen/spacing_small"
                         app:singleSelection="true" />
 
@@ -141,7 +143,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_times"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <LinearLayout
@@ -152,29 +154,29 @@
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/fell_asleep_button"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:minHeight="48dp" />
+                            android:minHeight="@dimen/touch_target_min" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/clear_fell_asleep_button"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/clear_time" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/woke_up_button"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="@dimen/spacing_small"
-                            android:minHeight="48dp" />
+                            android:minHeight="@dimen/touch_target_min" />
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/clear_woke_up_button"
-                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            style="@style/Widget.Material3.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/clear_time" />
@@ -185,7 +187,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_questions"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
@@ -193,13 +195,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
                         android:text="@string/slept_through_question"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/slept_through_chip_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="@dimen/chip_spacing_horizontal"
+                        app:chipSpacingVertical="@dimen/chip_spacing_vertical"
                         app:singleSelection="true" />
 
                     <TextView
@@ -207,13 +211,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
                         android:text="@string/had_dreams_question"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/had_dreams_chip_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="@dimen/chip_spacing_horizontal"
+                        app:chipSpacingVertical="@dimen/chip_spacing_vertical"
                         app:singleSelection="true" />
 
                     <TextView
@@ -221,7 +227,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_ratings"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <TextView
@@ -229,13 +235,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
                         android:text="@string/sleep_rating_label"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/sleep_rating_chip_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="@dimen/chip_spacing_horizontal"
+                        app:chipSpacingVertical="@dimen/chip_spacing_vertical"
                         app:singleSelection="true" />
 
                     <TextView
@@ -243,18 +251,20 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
                         android:text="@string/rested_rating_label"
-                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Body"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.chip.ChipGroup
                         android:id="@+id/rested_rating_chip_group"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        app:chipSpacingHorizontal="@dimen/chip_spacing_horizontal"
+                        app:chipSpacingVertical="@dimen/chip_spacing_vertical"
                         app:singleSelection="true" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/awakening_count_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_medium"
@@ -272,7 +282,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_tags"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <LinearLayout
@@ -287,12 +297,12 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_screen"
                         android:text="@string/form_section_notes"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.SectionTitle"
                         android:textColor="?attr/colorOnSurface" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/notes_layout"
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
@@ -312,7 +322,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_medium"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
                         android:textColor="?attr/colorError"
                         android:visibility="gone" />
 
@@ -321,7 +331,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_medium"
-                        android:minHeight="48dp"
+                        android:minHeight="@dimen/touch_target_min"
                         android:text="@string/save_sleep_log" />
 
                     <com.google.android.material.progressindicator.LinearProgressIndicator
