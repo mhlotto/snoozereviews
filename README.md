@@ -1,7 +1,7 @@
 # Snooze Reviews
 
 <p align="center">
-  <img src="artwork/generated/snooze-native-crop-master.png" alt="Snooze Reviews splash artwork" width="180">
+  <img src="app/src/main/res/drawable-nodpi/snooze_splash_full.png" alt="Snooze Reviews splash artwork" width="240">
 </p>
 
 Snooze Reviews is an Android app for manually logging and reviewing sleep. It is built as a small Java/XML Android application with local Room persistence and no network access.
@@ -18,6 +18,7 @@ The app currently focuses on private, on-device sleep-log entry, review, history
 - Add by Date flow for completed historical nights
 - Stats placeholder screen
 - Versioned JSON backup and restore
+- Settings for custom sleep locations and descriptive tags
 - Light and dark Material themes
 - Custom native splash and launcher artwork
 
@@ -32,7 +33,7 @@ See [docs/FEATURES.md](docs/FEATURES.md) for detailed user-facing behavior.
 | Minimum SDK | 29 |
 | Namespace | `com.mhlotto.snoozereviews` |
 | Storage | Room |
-| Database | `snooze-reviews.db`, version 1 |
+| Database | `snooze-reviews.db`, version 3 |
 | Networking | None |
 | Requested permissions | None |
 

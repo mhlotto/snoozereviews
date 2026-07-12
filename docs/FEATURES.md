@@ -60,6 +60,37 @@ Ratings are optional values from `1` through `5`; `Not rated` stores `null`.
 
 Sleep locations and tags use stable keys rather than display labels. Unknown nonblank keys from existing data or backups are preserved and shown with safe fallback labels. Tags are stored as rows, not comma-separated text.
 
+### Built-in and custom sleep locations
+
+The built-in sleep locations are fixed and cannot be edited or removed:
+
+- Bed
+- Couch
+- Bed and couch
+- Recliner or chair
+- Hotel or guest bed
+- Floor
+- Vehicle
+- Other
+
+Settings lets users add custom sleep locations. Custom names are cleaned by trimming outside whitespace and collapsing internal whitespace. Duplicate comparison is case-insensitive and whitespace-normalized.
+
+Removing a custom location is a soft removal: it disappears from future form choices, but existing sleep logs keep and display that location. If a removed custom location is entered again, Settings asks whether to restore it.
+
+### Built-in and custom descriptive tags
+
+Built-in descriptive tags are fixed, read-only, and grouped into stable categories:
+
+- Temperature and environment
+- Physical condition
+- Sleep pattern
+- Mind and dreams
+- Morning result
+
+Settings includes a `Descriptive tags` management screen. Users can add custom tags, choose one category for each tag, change a custom tag's category later, soft-remove tags from future form choices, and restore removed tags. Duplicate detection is global across categories and uses the same case-insensitive, whitespace-normalized name rule as custom locations.
+
+Custom tags are stored in sleep logs as encoded keys beginning with `CUSTOM_TAG_B64:`. Removing a custom tag does not change historical sleep logs. When editing a log that already uses a removed or orphaned custom tag, the form keeps it selected and readable so the user can retain or deselect it.
+
 Notes are optional multiline text. Empty or whitespace-only notes may be normalized to `null`.
 
 ## Duplicate night dates and unsaved changes
@@ -82,6 +113,8 @@ Report sections include:
 
 Missing optional values are shown explicitly with labels such as `Not recorded`, `Not answered`, `Not rated`, or `Not available`.
 
+Selected descriptive tags are grouped under category headings in the report. Only categories with selected tags are shown. Built-in tags use their fixed categories, custom tags use their current Settings category, removed custom tags keep their stored category, and orphaned or unknown tags appear under `Other`.
+
 Duration is calculated only when both sleep and wake times are present:
 
 ```text
@@ -99,7 +132,7 @@ The report includes an Edit action. After a successful edit, it reloads the full
 
 `SleepHistoryActivity` lists all saved sleep logs newest first by `night_date DESC`. Rows show a localized date, duration summary, compact ratings, location, and a preview of up to three tags with an overflow count.
 
-Selecting a row opens the sleep report for that record. The history screen refreshes after returning from detail so edits and changed ordering are reflected.
+History rows keep descriptive tags compact rather than showing category sections. Selecting a row opens the sleep report for that record. The history screen refreshes after returning from detail so edits and changed ordering are reflected.
 
 ## Shared navigation
 
@@ -109,8 +142,15 @@ Normal app screens share toolbar navigation for:
 - Stats
 - Add by Date
 - Backup and Restore
+- Settings
 
 The active destination hides its own menu item. Navigation uses normal Activity starts and does not restart splash or clear the task.
+
+## Settings
+
+`SettingsActivity` shows built-in sleep locations as read-only and active custom locations as removable rows. It also links to the descriptive tag management screen. Adding custom locations or tags rejects blanks, control characters, names longer than 80 characters, built-in duplicates, and active custom duplicates.
+
+Custom locations and custom tags are stored in sleep logs as encoded keys, so historical logs and backups can preserve labels even if a Settings row is removed.
 
 ## Stats placeholder
 

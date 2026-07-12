@@ -36,22 +36,33 @@ Use this checklist for later device testing. Do not mark items complete unless t
 8. Attempt a duplicate date through Add by Date and the form.
 9. Browse history.
 10. Edit from history and verify row refresh and reorder.
-11. Navigate between History, Stats, Add by Date, and Backup and Restore.
+11. Navigate between History, Stats, Add by Date, Backup and Restore, and Settings.
 12. Test dirty-form navigation with Keep editing and Discard.
 13. Export a backup.
 14. Import into empty app data.
 15. Import over matching dates and verify replacement.
 16. Verify local-only records remain after import.
 17. Cancel import and export document pickers.
-18. Rotate during loading, editing, and backup/import operations.
-19. Test dark theme.
-20. Test increased font size.
-21. Test TalkBack labels where available.
-22. Test Android 12+ splash behavior.
-23. Test pre-Android 12 splash behavior if an older device is available.
-24. Confirm the launcher icon remains recognizable under circle, rounded-square, squircle, and OEM masks.
-25. Confirm the themed monochrome icon is legible where themed icons are enabled.
-26. Confirm startup has no white flash before or after the native splash.
+18. Add, duplicate, remove, and restore a custom sleep location in Settings.
+19. Confirm removed custom locations disappear from new form choices.
+20. Confirm old logs with removed custom locations still display the location.
+21. Add, duplicate, remove, restore, and recategorize a custom descriptive tag in Settings.
+22. Confirm removed custom tags disappear from new form choices.
+23. Confirm old logs with removed custom tags still display the tag.
+24. Confirm detail reports group selected tags under nonempty category headings.
+25. Confirm orphaned and unknown selected tags appear under `Other`.
+26. Confirm history rows still use compact tag previews.
+27. Export and import a version 2 backup with active and removed custom tags.
+28. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
+29. Rotate during loading, editing, Settings, and backup/import operations.
+30. Test dark theme.
+31. Test increased font size.
+32. Test TalkBack labels where available.
+33. Test Android 12+ splash behavior.
+34. Test pre-Android 12 splash behavior if an older device is available.
+27. Confirm the launcher icon remains recognizable under circle, rounded-square, squircle, and OEM masks.
+28. Confirm the themed monochrome icon is legible where themed icons are enabled.
+29. Confirm startup has no white flash before or after the native splash.
 
 ## Accessibility And Layout Checklist
 
@@ -66,8 +77,8 @@ Use this checklist for later device testing. Do not mark items complete unless t
 
 Use this checklist for a later visual device pass. The current automated workflow validates that resources compile and resolve, but it does not replace device inspection.
 
-- Android 12+ native splash shows the derived sleeping-face icon on a solid deep-night background.
-- Pre-Android 12 AndroidX splash behavior is visually consistent.
+- Android 12+ native splash briefly shows the derived sleeping-face icon, then transitions to the full portrait launch screen.
+- Pre-Android 12 AndroidX splash briefly shows the derived icon, then transitions to the full portrait launch screen.
 - Splash remains visible for the existing routing delay and does not introduce a second full-screen animation.
 - Launcher icon foreground is not clipped under circle, rounded-square, squircle, and irregular OEM masks.
 - Legacy launcher icons have transparent edges where expected and no accidental white background.

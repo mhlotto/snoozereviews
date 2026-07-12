@@ -38,6 +38,15 @@ The native crop master is stored at its actual crop dimensions. The script does 
 
 The splash and launcher foreground outputs use a circular image treatment on transparent canvases to avoid an obvious rectangular crop. Legacy launcher icons composite the circular image over the final deep-night background.
 
+The custom launch screen also packages a full-portrait derivative directly from the approved source:
+
+```text
+app/src/main/res/drawable-nodpi/snooze_splash_full.png
+941 x 1672 PNG
+```
+
+This file is used as Activity content after the brief native splash phase. It preserves the full source composition and is not generated from the crop master.
+
 ## Generated Android Outputs
 
 Splash icons:

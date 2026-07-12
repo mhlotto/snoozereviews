@@ -58,6 +58,14 @@ make_native_crop_master() {
         "${output}"
 }
 
+make_full_splash() {
+    local output="$1"
+    mkdir -p "$(dirname "${output}")"
+    magick "${SOURCE_IMAGE}" \
+        -strip -colorspace sRGB \
+        "${output}"
+}
+
 make_circle_art() {
     local crop_master="$1"
     local size="$2"
@@ -169,8 +177,10 @@ main() {
 
     find "${ARTWORK_DIR}" -type f -name '*.png' -delete
     make_native_crop_master "${native_crop_master}"
+    make_full_splash "${RES_DIR}/drawable-nodpi/snooze_splash_full.png"
 
     validate_png "${native_crop_master}" "${NATIVE_CROP_SIZE}x${NATIVE_CROP_SIZE}"
+    validate_png "${RES_DIR}/drawable-nodpi/snooze_splash_full.png" "${source_width}x${source_height}"
 
     make_splash_icon "${native_crop_master}" 288 225 "${RES_DIR}/drawable-mdpi/snooze_splash_icon.png"
     make_splash_icon "${native_crop_master}" 432 338 "${RES_DIR}/drawable-hdpi/snooze_splash_icon.png"
@@ -207,14 +217,14 @@ main() {
     esac
 
     if command -v pngcheck >/dev/null 2>&1; then
-        pngcheck -q "${ARTWORK_DIR}"/*.png "${RES_DIR}"/drawable-*/*.png "${RES_DIR}"/mipmap-*/*.png
+        pngcheck -q "${ARTWORK_DIR}"/*.png "${RES_DIR}"/drawable-*/*.png "${RES_DIR}"/drawable-nodpi/*.png "${RES_DIR}"/mipmap-*/*.png
         printf "pngcheck: ok\n"
     else
         printf "pngcheck: not installed; skipped\n"
     fi
 
     if command -v oxipng >/dev/null 2>&1; then
-        oxipng -q -o 2 "${ARTWORK_DIR}"/*.png "${RES_DIR}"/drawable-*/*.png "${RES_DIR}"/mipmap-*/*.png
+        oxipng -q -o 2 "${ARTWORK_DIR}"/*.png "${RES_DIR}"/drawable-*/*.png "${RES_DIR}"/drawable-nodpi/*.png "${RES_DIR}"/mipmap-*/*.png
         printf "oxipng: optimized final PNGs\n"
     else
         printf "oxipng: not installed; skipped\n"
@@ -222,7 +232,7 @@ main() {
 
     printf "\nGenerated visual assets from native crop master (%s):\n" "${CROP_GEOMETRY}"
     find "${ARTWORK_DIR}" "${RES_DIR}" \
-        \( -name 'snooze-native-crop-master.png' -o -name 'snooze_splash_icon.png' -o -name 'ic_launcher*.png' \) \
+        \( -name 'snooze-native-crop-master.png' -o -name 'snooze_splash_full.png' -o -name 'snooze_splash_icon.png' -o -name 'ic_launcher*.png' \) \
         -type f | sort | sed "s#${ROOT_DIR}/#  #"
 }
 

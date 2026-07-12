@@ -1,6 +1,13 @@
 .PHONY: help build debug test connected-test lint check clean install visual-assets
 
+ANDROID_STUDIO_JBR := /Applications/Android Studio.app/Contents/jbr/Contents/Home
+ANDROID_STUDIO_JAVA := /Applications/Android\ Studio.app/Contents/jbr/Contents/Home/bin/java
+
+ifneq ($(wildcard $(ANDROID_STUDIO_JAVA)),)
+GRADLE := JAVA_HOME="$(ANDROID_STUDIO_JBR)" ./gradlew
+else
 GRADLE := ./gradlew
+endif
 
 help:
 	@printf "Available targets:\n"

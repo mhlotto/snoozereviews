@@ -41,14 +41,21 @@ Android density outputs are generated directly from this native crop master with
 
 ## Splash artwork
 
-The app uses AndroidX SplashScreen with:
+The app uses AndroidX SplashScreen for the required platform startup phase, then immediately transitions to custom `SplashActivity` content.
+
+The native splash uses:
 
 - A solid deep-night background
 - A centered circular derived icon
-- No full-screen bitmap background
-- No second custom splash animation
 
-The existing 2.5-second launch-routing behavior is application logic and is not part of the artwork generation.
+The custom splash screen uses the approved full portrait illustration packaged as:
+
+```text
+app/src/main/res/drawable-nodpi/snooze_splash_full.png
+941 x 1672 PNG
+```
+
+That full portrait remains visible while the existing 2.5-second launch-routing delay and Room lookup complete. It is Activity content, not a native splash icon, and it is not stretched into an adaptive-icon canvas.
 
 ## Launcher icons
 
@@ -97,8 +104,8 @@ Generated source derivatives live under `artwork/generated/`. Android resource o
 
 Device review is still required for:
 
-- Android 12+ native splash rendering
-- Pre-Android 12 AndroidX splash rendering
+- Android 12+ native splash-to-full-portrait transition
+- Pre-Android 12 AndroidX splash-to-full-portrait transition
 - Launcher masks from different OEM launchers
 - Themed monochrome icon presentation
 - Light and dark theme contrast

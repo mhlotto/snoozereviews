@@ -25,6 +25,8 @@ Canceling either picker is not an error.
 
 Backup files may contain private sleep details such as notes, times, ratings, and tags. The app does not upload, share, or log backup contents.
 
+The Room database is excluded from Android platform cloud backup and device-transfer extraction rules. User-controlled JSON export/import is the intended backup mechanism.
+
 Encryption, cloud sync, and scheduled backup are deferred.
 
 ## Format
@@ -38,7 +40,7 @@ snooze-reviews-backup
 Current logical backup version:
 
 ```text
-1
+2
 ```
 
 Top-level structure:
@@ -46,16 +48,38 @@ Top-level structure:
 ```json
 {
   "format": "snooze-reviews-backup",
-  "version": 1,
-  "databaseVersion": 1,
+  "version": 2,
+  "databaseVersion": 3,
   "exportedAt": "2026-07-11T14:30:00Z",
+  "customTags": [],
   "logs": []
 }
 ```
 
 `databaseVersion` is metadata. The logical backup version is the import compatibility gate.
 
-Unsupported newer backup versions are rejected. Versions less than 1 are rejected.
+Unsupported newer backup versions are rejected. Versions less than 1 are rejected. Version 1 backups remain importable, but they do not include custom tag metadata.
+
+## Custom tag definitions
+
+Backup version 2 exports active and inactive custom descriptive tags in `customTags`. Built-in tags are not exported.
+
+Each custom tag definition contains:
+
+- `tagKey`
+- `displayName`
+- `categoryKey`
+- `isActive`
+- `createdAt`
+- `updatedAt`
+
+Custom tag keys use:
+
+```text
+CUSTOM_TAG_B64:<base64url-encoded UTF-8 display name>
+```
+
+Definitions are sorted by normalized display name. Import validates duplicate keys, duplicate normalized names, key/display-name mismatches, category keys, timestamps, and collisions with built-in tag names before changing the database.
 
 ## Exported log fields
 
@@ -78,6 +102,16 @@ Each log exports:
 Room IDs are not exported. `nightDate` is the logical identity. Tags are exported as arrays on each log, not comma-separated strings.
 
 Unknown valid location and tag keys are preserved.
+
+Custom sleep locations are exported through the existing `sleepLocation` field using the encoded key format:
+
+```text
+CUSTOM_B64:<base64url-encoded UTF-8 display name>
+```
+
+No separate custom-location Settings table is exported. Custom locations continue to travel only through sleep-log `sleepLocation` keys.
+
+Custom tag definitions are exported separately starting in backup format version 2. Active/inactive custom tag state and category assignment are preserved by version 2 backups.
 
 ## Deterministic export
 
@@ -107,6 +141,7 @@ The whole document is parsed and validated before database modification. Validat
 - Minute, rating, awakening-count, and timestamp ranges
 - `updatedAt >= createdAt`
 - Tag array and nonblank tag keys
+- Custom tag definition keys, names, categories, active states, and timestamps in version 2 backups
 
 Unknown extra JSON fields are ignored for supported versions. Future night dates are not rejected solely because they are future dates.
 
@@ -124,7 +159,15 @@ For a new date, Room generates a new local ID and stores the imported values.
 
 Local-only records are not deleted or modified.
 
-Before applying an import, the app calculates a confirmation summary showing imported records, new records, matching dates that will be replaced, and local-only records that will remain unchanged.
+If an imported sleep log contains a valid `CUSTOM_B64:` location key, import decodes the display name and ensures a matching custom-location row exists. New reconstructed custom locations become active. Existing local active or inactive rows are not duplicated, and inactive rows remain inactive.
+
+If a custom key cannot be decoded, the key is preserved as an unknown forward-compatible location value.
+
+For version 2 backups, imported matching custom tag keys replace the local custom tag category and active state. New custom tag keys are inserted. Local-only custom tags remain unchanged.
+
+For version 1 backups, there is no `customTags` array. If a log contains a valid `CUSTOM_TAG_B64:` key, import decodes the display name and creates a missing custom-tag row as active in the `Other` category. Existing local custom tag rows keep their current category and active state. Version 1 cannot restore original custom-tag category or active/inactive state because it did not contain that metadata.
+
+Before applying an import, the app calculates a confirmation summary showing imported records, new records, matching dates that will be replaced, local-only records that will remain unchanged, and custom tag definitions that will be added or updated.
 
 ## Transactional rollback
 
@@ -145,3 +188,4 @@ These limits are defensive and should not affect realistic personal sleep histor
 - Direct sharing
 - Replace-all restore mode
 - Future backup-format migrations
+- Exporting active/inactive custom-location Settings state separately

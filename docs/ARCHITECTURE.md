@@ -12,7 +12,7 @@ Snooze Reviews is a Java Android app using XML layouts, Android Views, View Bind
 - Networking: none
 - Requested Android permissions: none
 - Database filename: `snooze-reviews.db`
-- Room database version: 1
+- Room database version: 3
 
 ## Package structure
 
@@ -23,10 +23,12 @@ com.mhlotto.snoozereviews.data.backup
 com.mhlotto.snoozereviews.data.dao
 com.mhlotto.snoozereviews.data.db
 com.mhlotto.snoozereviews.data.entity
+com.mhlotto.snoozereviews.data.location
+com.mhlotto.snoozereviews.data.tag
 com.mhlotto.snoozereviews.ui
 ```
 
-Room entities live under `data.entity`, DAOs under `data.dao`, and `SnoozeReviewsDatabase` under `data.db`. UI Activities and formatting helpers live under `ui` and feature-specific UI subpackages.
+Room entities live under `data.entity`, DAOs under `data.dao`, and `SnoozeReviewsDatabase` under `data.db`. Custom location helpers live under `data.location`; custom tag helpers live under `data.tag`. UI Activities and formatting helpers live under `ui` and feature-specific UI subpackages.
 
 ## Activities
 
@@ -37,6 +39,8 @@ Room entities live under `data.entity`, DAOs under `data.dao`, and `SnoozeReview
 - `SleepStatsActivity`: statistics placeholder.
 - `AddSleepByDateActivity`: date selection and create/detail routing.
 - `BackupRestoreActivity`: manual JSON export and import.
+- `SettingsActivity`: settings hub and custom sleep-location management.
+- `SleepTagSettingsActivity`: custom descriptive tag management.
 
 `SplashActivity` is the only launcher. Other Activities are normal non-exported app destinations.
 
@@ -50,13 +54,13 @@ The backup layer uses a separate backup service/repository path for JSON import/
 
 ## Room database
 
-`SnoozeReviewsDatabase` is version `1` with `exportSchema = true`. Schema files are committed under:
+`SnoozeReviewsDatabase` is version `3` with `exportSchema = true`. Schema files are committed under:
 
 ```text
-app/schemas/com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase/1.json
+app/schemas/com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase/
 ```
 
-There are no migrations yet because version 1 is the initial production schema. Future schema changes must increment the database version, add explicit migrations, and add migration tests.
+Version 1 is the initial production sleep-log schema. Version 2 adds custom sleep locations through explicit `MIGRATION_1_2`. Version 3 adds custom descriptive tags through explicit `MIGRATION_2_3`. The database builder supports `1 -> 2 -> 3` and `2 -> 3` upgrades.
 
 ## Tables
 
@@ -79,7 +83,32 @@ Rows represent tag membership for a sleep log.
 - Foreign key to `sleep_logs.id`
 - `ON DELETE CASCADE`
 
-Tags are unordered set membership. There is no separate tag-definition table.
+Tags are unordered set membership. Built-in tags are fixed constants. Custom tag definitions live separately in `custom_sleep_tags`; `sleep_log_tags` intentionally has no foreign key to that table so historical selected tags remain readable after soft removal.
+
+### `custom_sleep_locations`
+
+User-managed sleep locations live in `custom_sleep_locations`.
+
+- `location_key`: primary key, encoded as `CUSTOM_B64:<base64url UTF-8 display name>`
+- `display_name`: cleaned user-facing name
+- `normalized_name`: duplicate-comparison name
+- `is_active`: whether the location appears in future form choices
+- `created_at` and `updated_at`: UTC epoch milliseconds
+
+There is a unique index on `normalized_name`. Rows are soft-deactivated rather than hard-deleted so existing logs can keep historical location labels. Built-in locations are not stored in this table.
+
+### `custom_sleep_tags`
+
+User-managed descriptive tag definitions live in `custom_sleep_tags`.
+
+- `tag_key`: primary key, encoded as `CUSTOM_TAG_B64:<base64url UTF-8 display name>`
+- `display_name`: cleaned user-facing name
+- `normalized_name`: duplicate-comparison name
+- `category_key`: one of `ENVIRONMENT`, `PHYSICAL`, `SLEEP_PATTERN`, `MIND_AND_DREAMS`, `MORNING_RESULT`, or `OTHER`
+- `is_active`: whether the tag appears in future form choices
+- `created_at` and `updated_at`: UTC epoch milliseconds
+
+There is a unique index on `normalized_name`. Rows are soft-deactivated rather than hard-deleted so existing logs can keep historical tag labels. Built-in tags are not stored in this table.
 
 ## Data conventions
 
@@ -89,6 +118,8 @@ Tags are unordered set membership. There is no separate tag-definition table.
 - Sleep quality and rested ratings are nullable integers from `1` through `5`.
 - `created_at` and `updated_at` are non-null UTC epoch milliseconds.
 - Unknown nonblank location and tag keys are preserved for forward compatibility.
+- Custom location keys use URL-safe Base64 without padding and start with `CUSTOM_B64:`.
+- Custom tag keys use URL-safe Base64 without padding and start with `CUSTOM_TAG_B64:`.
 
 ## Transactions and constraints
 
