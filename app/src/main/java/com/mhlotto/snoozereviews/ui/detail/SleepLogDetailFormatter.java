@@ -7,6 +7,7 @@ import com.mhlotto.snoozereviews.ui.form.FormOption;
 import com.mhlotto.snoozereviews.ui.form.SleepLogFormCatalog;
 import com.mhlotto.snoozereviews.ui.form.TagCategory;
 import com.mhlotto.snoozereviews.ui.form.TimeOfDayHelper;
+import com.mhlotto.snoozereviews.ui.location.SleepLocationLabelResolver;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -70,15 +71,7 @@ public class SleepLogDetailFormatter {
     }
 
     public String formatLocation(String key) {
-        if (key == null || key.trim().isEmpty()) {
-            return labels.getString(com.mhlotto.snoozereviews.R.string.not_recorded);
-        }
-        for (FormOption option : SleepLogFormCatalog.LOCATION_OPTIONS) {
-            if (key.equals(option.getKey())) {
-                return labels.getString(option.getLabelResId());
-            }
-        }
-        return labels.getString(com.mhlotto.snoozereviews.R.string.unknown_location_detail_format, key);
+        return SleepLocationLabelResolver.resolve(key, labels);
     }
 
     public List<TagDisplayItem> formatTags(List<SleepLogTagEntity> tagRows) {

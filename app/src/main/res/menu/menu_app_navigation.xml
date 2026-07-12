@@ -17,4 +17,8 @@
         android:id="@+id/action_backup_restore"
         android:title="@string/backup_and_restore"
         app:showAsAction="never" />
+    <item
+        android:id="@+id/action_settings"
+        android:title="@string/settings"
+        app:showAsAction="never" />
 </menu>

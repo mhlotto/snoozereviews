@@ -11,6 +11,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SnoozeReviews">
         <activity
+            android:name=".ui.SettingsActivity"
+            android:exported="false" />
+        <activity
             android:name=".ui.BackupRestoreActivity"
             android:exported="false" />
         <activity

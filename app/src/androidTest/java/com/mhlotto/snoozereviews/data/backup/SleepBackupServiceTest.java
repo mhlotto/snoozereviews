@@ -13,7 +13,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
 import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
 import com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
+import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
 
 import org.junit.After;
 import org.junit.Before;
@@ -126,6 +128,21 @@ public class SleepBackupServiceTest {
         }
 
         assertEquals(0, dao.countSleepLogs());
+    }
+
+    @Test
+    public void importValidCustomLocationKeyReconstructsActiveSettingsRow() throws Exception {
+        String customKey = CustomLocationKey.encode("Hammock");
+        SleepLogEntity imported = entity("2026-07-10");
+        imported.setSleepLocation(customKey);
+
+        apply(plan(record(imported)));
+
+        assertEquals(customKey, dao.findByNightDate("2026-07-10").getSleepLog().getSleepLocation());
+        CustomSleepLocationEntity location = database.customSleepLocationDao().findByKey(customKey);
+        assertEquals("Hammock", location.getDisplayName());
+        assertEquals("hammock", location.getNormalizedName());
+        assertEquals(1, database.customSleepLocationDao().countActive());
     }
 
     @Test

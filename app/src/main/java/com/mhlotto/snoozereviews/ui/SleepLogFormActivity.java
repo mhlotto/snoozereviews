@@ -28,8 +28,12 @@ import com.google.android.material.textfield.TextInputLayout;
 import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.data.SleepLogRepository;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
+import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
+import com.mhlotto.snoozereviews.data.location.CustomSleepLocationRepository;
 import com.mhlotto.snoozereviews.databinding.ActivitySleepLogFormBinding;
+import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailFormatter;
 import com.mhlotto.snoozereviews.ui.form.FormOption;
 import com.mhlotto.snoozereviews.ui.form.FormInputParser;
 import com.mhlotto.snoozereviews.ui.form.NightDatePolicy;
@@ -37,6 +41,7 @@ import com.mhlotto.snoozereviews.ui.form.SleepLogFormCatalog;
 import com.mhlotto.snoozereviews.ui.form.SleepLogFormState;
 import com.mhlotto.snoozereviews.ui.form.TagCategory;
 import com.mhlotto.snoozereviews.ui.form.TimeOfDayHelper;
+import com.mhlotto.snoozereviews.ui.location.SleepLocationLabelResolver;
 import com.mhlotto.snoozereviews.ui.navigation.AppNavigation;
 
 import java.time.Clock;
@@ -69,6 +74,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
 
     private ActivitySleepLogFormBinding binding;
     private SleepLogRepository repository;
+    private CustomSleepLocationRepository customLocationRepository;
     private NightDatePolicy nightDatePolicy;
     private SleepLogFormState currentState;
     private SleepLogFormState initialState;
@@ -81,6 +87,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private boolean suppressChangeCallbacks;
     private boolean navigationInProgress;
     private boolean discardDialogShowing;
+    private List<CustomSleepLocationEntity> activeCustomLocations = new ArrayList<>();
 
     public static Intent newCreateIntent(Context context, String nightDate) {
         Intent intent = new Intent(context, SleepLogFormActivity.class);
@@ -103,9 +110,12 @@ public class SleepLogFormActivity extends AppCompatActivity {
         setSupportActionBar(binding.toolbar);
 
         repository = new SleepLogRepository(this);
+        SleepLogDetailFormatter.LabelResolver labels = labelResolver();
+        customLocationRepository = new CustomSleepLocationRepository(this, SleepLocationLabelResolver.fixedDuplicateNames(labels));
         nightDatePolicy = new NightDatePolicy(Clock.systemDefaultZone());
 
         buildChoiceControls();
+        loadCustomLocations();
         wireEvents();
         configureBackHandling();
 
@@ -124,6 +134,9 @@ public class SleepLogFormActivity extends AppCompatActivity {
         destroyed = true;
         if (repository != null) {
             repository.shutdownBackgroundExecutor();
+        }
+        if (customLocationRepository != null) {
+            customLocationRepository.shutdownBackgroundExecutor();
         }
         super.onDestroy();
     }
@@ -228,9 +241,37 @@ public class SleepLogFormActivity extends AppCompatActivity {
         for (FormOption option : SleepLogFormCatalog.LOCATION_OPTIONS) {
             addChoiceChip(binding.locationChipGroup, option.getKey(), getString(option.getLabelResId()), true);
         }
-        if (unknownLocationKey != null) {
-            addChoiceChip(binding.locationChipGroup, unknownLocationKey, getString(R.string.unknown_location_format, unknownLocationKey), true);
+        for (CustomSleepLocationEntity customLocation : activeCustomLocations) {
+            addChoiceChip(binding.locationChipGroup, customLocation.getLocationKey(), customLocation.getDisplayName(), true);
         }
+        if (unknownLocationKey != null) {
+            String label = CustomLocationKey.isCustomKey(unknownLocationKey)
+                    ? customLocationFallbackLabel(unknownLocationKey)
+                    : getString(R.string.unknown_location_format, unknownLocationKey);
+            addChoiceChip(binding.locationChipGroup, unknownLocationKey, label, true);
+        }
+    }
+
+    private void loadCustomLocations() {
+        customLocationRepository.listActive(new CustomSleepLocationRepository.Callback<>() {
+            @Override
+            public void onSuccess(List<CustomSleepLocationEntity> result) {
+                if (isInactive()) {
+                    return;
+                }
+                activeCustomLocations = new ArrayList<>(result);
+                if (currentState != null) {
+                    renderFromState();
+                }
+            }
+
+            @Override
+            public void onError(Throwable error) {
+                if (!isInactive()) {
+                    Log.e(TAG, "Failed to load custom sleep locations", error);
+                }
+            }
+        });
     }
 
     private void addTriStateChips(ChipGroup chipGroup) {
@@ -535,7 +576,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
             return;
         }
         suppressChangeCallbacks = true;
-        addLocationChips(isKnownLocation(currentState.getSleepLocationKey()) ? null : currentState.getSleepLocationKey());
+        addLocationChips(isAvailableLocation(currentState.getSleepLocationKey()) ? null : currentState.getSleepLocationKey());
         addTagSections(unknownTagKeys(currentState.getSelectedTagKeys()));
         updateDateInput();
         updateTimeButtons();
@@ -782,7 +823,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         }
     }
 
-    private boolean isKnownLocation(String key) {
+    private boolean isAvailableLocation(String key) {
         if (key == null) {
             return true;
         }
@@ -791,7 +832,34 @@ public class SleepLogFormActivity extends AppCompatActivity {
                 return true;
             }
         }
+        for (CustomSleepLocationEntity location : activeCustomLocations) {
+            if (key.equals(location.getLocationKey())) {
+                return true;
+            }
+        }
         return false;
+    }
+
+    private String customLocationFallbackLabel(String key) {
+        String decoded = CustomLocationKey.decode(key);
+        if (decoded == null) {
+            return getString(R.string.unknown_location_format, key);
+        }
+        return getString(R.string.removed_location_format, decoded);
+    }
+
+    private SleepLogDetailFormatter.LabelResolver labelResolver() {
+        return new SleepLogDetailFormatter.LabelResolver() {
+            @Override
+            public String getString(int resId) {
+                return SleepLogFormActivity.this.getString(resId);
+            }
+
+            @Override
+            public String getString(int resId, Object... args) {
+                return SleepLogFormActivity.this.getString(resId, args);
+            }
+        };
     }
 
     private Set<String> unknownTagKeys(List<String> selectedTags) {

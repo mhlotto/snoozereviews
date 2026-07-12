@@ -1,0 +1,213 @@
+{
+  "formatVersion": 1,
+  "database": {
+    "version": 2,
+    "identityHash": "af098f8ef0e36bd9e386e06b19399280",
+    "entities": [
+      {
+        "tableName": "sleep_logs",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `night_date` TEXT NOT NULL, `sleep_location` TEXT, `fell_asleep_minute` INTEGER, `woke_up_minute` INTEGER, `slept_through_night` INTEGER, `had_dreams` INTEGER, `sleep_rating` INTEGER, `rested_rating` INTEGER, `awakening_count` INTEGER, `notes` TEXT, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL)",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "nightDate",
+            "columnName": "night_date",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "sleepLocation",
+            "columnName": "sleep_location",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "fellAsleepMinute",
+            "columnName": "fell_asleep_minute",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "wokeUpMinute",
+            "columnName": "woke_up_minute",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sleptThroughNight",
+            "columnName": "slept_through_night",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "hadDreams",
+            "columnName": "had_dreams",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "sleepRating",
+            "columnName": "sleep_rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "restedRating",
+            "columnName": "rested_rating",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "awakeningCount",
+            "columnName": "awakening_count",
+            "affinity": "INTEGER"
+          },
+          {
+            "fieldPath": "notes",
+            "columnName": "notes",
+            "affinity": "TEXT"
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": true,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sleep_logs_night_date",
+            "unique": true,
+            "columnNames": [
+              "night_date"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_sleep_logs_night_date` ON `${TABLE_NAME}` (`night_date`)"
+          }
+        ]
+      },
+      {
+        "tableName": "sleep_log_tags",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`sleep_log_id` INTEGER NOT NULL, `tag_key` TEXT NOT NULL, PRIMARY KEY(`sleep_log_id`, `tag_key`), FOREIGN KEY(`sleep_log_id`) REFERENCES `sleep_logs`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "fields": [
+          {
+            "fieldPath": "sleepLogId",
+            "columnName": "sleep_log_id",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "tagKey",
+            "columnName": "tag_key",
+            "affinity": "TEXT",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "sleep_log_id",
+            "tag_key"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_sleep_log_tags_sleep_log_id",
+            "unique": false,
+            "columnNames": [
+              "sleep_log_id"
+            ],
+            "orders": [],
+            "createSql": "CREATE INDEX IF NOT EXISTS `index_sleep_log_tags_sleep_log_id` ON `${TABLE_NAME}` (`sleep_log_id`)"
+          }
+        ],
+        "foreignKeys": [
+          {
+            "table": "sleep_logs",
+            "onDelete": "CASCADE",
+            "onUpdate": "NO ACTION",
+            "columns": [
+              "sleep_log_id"
+            ],
+            "referencedColumns": [
+              "id"
+            ]
+          }
+        ]
+      },
+      {
+        "tableName": "custom_sleep_locations",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`location_key` TEXT NOT NULL, `display_name` TEXT NOT NULL, `normalized_name` TEXT NOT NULL, `is_active` INTEGER NOT NULL, `created_at` INTEGER NOT NULL, `updated_at` INTEGER NOT NULL, PRIMARY KEY(`location_key`))",
+        "fields": [
+          {
+            "fieldPath": "locationKey",
+            "columnName": "location_key",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "displayName",
+            "columnName": "display_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "normalizedName",
+            "columnName": "normalized_name",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "active",
+            "columnName": "is_active",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createdAt",
+            "columnName": "created_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "updatedAt",
+            "columnName": "updated_at",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "location_key"
+          ]
+        },
+        "indices": [
+          {
+            "name": "index_custom_sleep_locations_normalized_name",
+            "unique": true,
+            "columnNames": [
+              "normalized_name"
+            ],
+            "orders": [],
+            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_custom_sleep_locations_normalized_name` ON `${TABLE_NAME}` (`normalized_name`)"
+          }
+        ]
+      }
+    ],
+    "setupQueries": [
+      "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'af098f8ef0e36bd9e386e06b19399280')"
+    ]
+  }
+}

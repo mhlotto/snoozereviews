@@ -18,6 +18,7 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.mhlotto.snoozereviews.ui.AddSleepByDateActivity;
 import com.mhlotto.snoozereviews.ui.BackupRestoreActivity;
+import com.mhlotto.snoozereviews.ui.SettingsActivity;
 import com.mhlotto.snoozereviews.ui.SleepHistoryActivity;
 import com.mhlotto.snoozereviews.ui.SleepLogDetailActivity;
 import com.mhlotto.snoozereviews.ui.SleepLogFormActivity;
@@ -51,11 +52,12 @@ public class ManifestSecurityTest {
         assertFalse(activities.get(SleepStatsActivity.class.getName()).exported);
         assertFalse(activities.get(AddSleepByDateActivity.class.getName()).exported);
         assertFalse(activities.get(BackupRestoreActivity.class.getName()).exported);
+        assertFalse(activities.get(SettingsActivity.class.getName()).exported);
     }
 
     @Test
     public void manifestContainsExpectedActivityCount() throws Exception {
-        assertEquals(7, activitiesByName().size());
+        assertEquals(8, activitiesByName().size());
     }
 
     @Test

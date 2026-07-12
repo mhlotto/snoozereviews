@@ -5,10 +5,14 @@ import android.os.Handler;
 import android.os.Looper;
 
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
+import com.mhlotto.snoozereviews.data.dao.CustomSleepLocationDao;
 import com.mhlotto.snoozereviews.data.dao.SleepLogDao;
 import com.mhlotto.snoozereviews.data.db.SnoozeReviewsDatabase;
+import com.mhlotto.snoozereviews.data.entity.CustomSleepLocationEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
 import com.mhlotto.snoozereviews.data.entity.SleepLogTagEntity;
+import com.mhlotto.snoozereviews.data.location.CustomLocationKey;
+import com.mhlotto.snoozereviews.data.location.SleepLocationNameNormalizer;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -54,6 +58,7 @@ public class SleepBackupService {
 
     private final SnoozeReviewsDatabase database;
     private final SleepLogDao sleepLogDao;
+    private final CustomSleepLocationDao customLocationDao;
     private final SleepBackupCodec codec;
     private final Executor backgroundExecutor;
     private final Executor callbackExecutor;
@@ -78,6 +83,7 @@ public class SleepBackupService {
     ) {
         this.database = database;
         this.sleepLogDao = database.sleepLogDao();
+        this.customLocationDao = database.customSleepLocationDao();
         this.codec = codec;
         this.backgroundExecutor = backgroundExecutor;
         this.callbackExecutor = callbackExecutor;
@@ -115,6 +121,7 @@ public class SleepBackupService {
             database.runInTransaction(() -> {
                 for (SleepBackupRecord record : plan.getDocument().getRecords()) {
                     SleepLogEntity imported = record.getSleepLog();
+                    ensureCustomLocationRow(imported.getSleepLocation());
                     SleepLogWithTags existing = sleepLogDao.findByNightDate(imported.getNightDate());
                     if (existing == null) {
                         imported.setId(0L);
@@ -127,6 +134,34 @@ public class SleepBackupService {
             });
             return new ImportResult(plan.getSummary());
         });
+    }
+
+    private void ensureCustomLocationRow(String sleepLocationKey) {
+        if (!CustomLocationKey.isCustomKey(sleepLocationKey)) {
+            return;
+        }
+        String displayName = CustomLocationKey.decode(sleepLocationKey);
+        if (displayName == null) {
+            return;
+        }
+        SleepLocationNameNormalizer.CleanedName cleaned = SleepLocationNameNormalizer.clean(displayName);
+        CustomSleepLocationEntity existingByKey = customLocationDao.findByKey(sleepLocationKey);
+        if (existingByKey != null) {
+            return;
+        }
+        CustomSleepLocationEntity existingByName = customLocationDao.findByNormalizedName(cleaned.getNormalizedName());
+        if (existingByName != null) {
+            return;
+        }
+        long now = clock.millis();
+        customLocationDao.insert(new CustomSleepLocationEntity(
+                sleepLocationKey,
+                cleaned.getDisplayName(),
+                cleaned.getNormalizedName(),
+                true,
+                now,
+                now
+        ));
     }
 
     SleepBackupDocument buildExportDocument() {

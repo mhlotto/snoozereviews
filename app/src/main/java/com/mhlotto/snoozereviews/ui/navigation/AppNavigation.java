@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.ui.AddSleepByDateActivity;
 import com.mhlotto.snoozereviews.ui.BackupRestoreActivity;
+import com.mhlotto.snoozereviews.ui.SettingsActivity;
 import com.mhlotto.snoozereviews.ui.SleepHistoryActivity;
 import com.mhlotto.snoozereviews.ui.SleepStatsActivity;
 
@@ -18,7 +19,8 @@ public final class AppNavigation {
         HISTORY,
         STATS,
         ADD_BY_DATE,
-        BACKUP_RESTORE
+        BACKUP_RESTORE,
+        SETTINGS
     }
 
     private AppNavigation() {
@@ -38,6 +40,9 @@ public final class AppNavigation {
         if (itemId == R.id.action_backup_restore) {
             return Destination.BACKUP_RESTORE;
         }
+        if (itemId == R.id.action_settings) {
+            return Destination.SETTINGS;
+        }
         return null;
     }
 
@@ -55,6 +60,9 @@ public final class AppNavigation {
                 break;
             case BACKUP_RESTORE:
                 intent = BackupRestoreActivity.newIntent(activity);
+                break;
+            case SETTINGS:
+                intent = SettingsActivity.newIntent(activity);
                 break;
             default:
                 return false;
@@ -88,6 +96,8 @@ public final class AppNavigation {
                 return R.id.action_add_by_date;
             case BACKUP_RESTORE:
                 return R.id.action_backup_restore;
+            case SETTINGS:
+                return R.id.action_settings;
             default:
                 return 0;
         }

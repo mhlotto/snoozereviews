@@ -82,6 +82,10 @@ public class LaunchActivityTest {
                 new ComponentName(context, BackupRestoreActivity.class),
                 BackupRestoreActivity.newIntent(context).getComponent()
         );
+        assertEquals(
+                new ComponentName(context, SettingsActivity.class),
+                SettingsActivity.newIntent(context).getComponent()
+        );
     }
 
     @Test

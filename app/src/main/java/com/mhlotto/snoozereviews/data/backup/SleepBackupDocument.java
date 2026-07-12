@@ -8,7 +8,7 @@ import java.util.List;
 public class SleepBackupDocument {
     public static final String FORMAT = "snooze-reviews-backup";
     public static final int VERSION = 1;
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
 
     private final int databaseVersion;
     private final Instant exportedAt;
