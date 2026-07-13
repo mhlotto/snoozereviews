@@ -12,10 +12,13 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.XmlResourceParser;
+import android.view.ContextThemeWrapper;
+import android.view.LayoutInflater;
 
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import com.google.android.material.chip.Chip;
 import com.mhlotto.snoozereviews.ui.AddSleepByDateActivity;
 import com.mhlotto.snoozereviews.ui.BackupRestoreActivity;
 import com.mhlotto.snoozereviews.ui.SettingsActivity;
@@ -98,9 +101,23 @@ public class ManifestSecurityTest {
         assertTrue(context.getResources().getResourceName(R.style.TextAppearance_SnoozeReviews_Chip).contains("TextAppearance.SnoozeReviews.Chip"));
         assertTrue(context.getResources().getDimensionPixelSize(R.dimen.touch_target_min) >= 48);
         assertTrue(context.getResources().getResourceName(R.layout.view_choice_chip).contains("view_choice_chip"));
+        assertTrue(context.getResources().getResourceName(R.layout.view_form_choice_chip_no_icon).contains("view_form_choice_chip_no_icon"));
+        assertTrue(context.getResources().getResourceName(R.style.Widget_SnoozeReviews_FormChoiceChip_NoIcon).contains("Widget.SnoozeReviews.FormChoiceChip.NoIcon"));
         assertTrue(context.getResources().getResourceName(R.color.snooze_choice_chip_background).contains("snooze_choice_chip_background"));
         assertTrue(context.getResources().getResourceName(R.color.snooze_choice_chip_text).contains("snooze_choice_chip_text"));
         assertTrue(context.getResources().getResourceName(R.color.snooze_choice_chip_stroke).contains("snooze_choice_chip_stroke"));
+    }
+
+    @Test
+    public void formNoIconChoiceChipDisablesCheckedIconWithoutChangingDefaultChip() {
+        Context context = new ContextThemeWrapper(ApplicationProvider.getApplicationContext(), R.style.Theme_SnoozeReviews);
+        LayoutInflater inflater = LayoutInflater.from(context);
+
+        Chip defaultChip = (Chip) inflater.inflate(R.layout.view_choice_chip, null, false);
+        Chip noIconChip = (Chip) inflater.inflate(R.layout.view_form_choice_chip_no_icon, null, false);
+
+        assertTrue(defaultChip.isCheckedIconVisible());
+        assertFalse(noIconChip.isCheckedIconVisible());
     }
 
     @Test

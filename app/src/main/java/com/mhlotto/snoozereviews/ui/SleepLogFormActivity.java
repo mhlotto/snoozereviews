@@ -78,6 +78,11 @@ public class SleepLogFormActivity extends AppCompatActivity {
     private static final String MODE_CREATE = "create";
     private static final String MODE_EDIT = "edit";
 
+    private enum ChipPresentation {
+        DEFAULT,
+        HIGHLIGHT_ONLY
+    }
+
     private ActivitySleepLogFormBinding binding;
     private SleepLogRepository repository;
     private CustomSleepLocationRepository customLocationRepository;
@@ -250,18 +255,21 @@ public class SleepLogFormActivity extends AppCompatActivity {
 
     private void addLocationChips(String unknownLocationKey) {
         binding.locationChipGroup.removeAllViews();
-        addChoiceChip(binding.locationChipGroup, null, getString(R.string.sleep_location_not_specified), true);
+        addChoiceChip(binding.locationChipGroup, null, getString(R.string.sleep_location_not_specified), true,
+                ChipPresentation.HIGHLIGHT_ONLY);
         for (FormOption option : SleepLogFormCatalog.LOCATION_OPTIONS) {
-            addChoiceChip(binding.locationChipGroup, option.getKey(), getString(option.getLabelResId()), true);
+            addChoiceChip(binding.locationChipGroup, option.getKey(), getString(option.getLabelResId()), true,
+                    ChipPresentation.HIGHLIGHT_ONLY);
         }
         for (CustomSleepLocationEntity customLocation : activeCustomLocations) {
-            addChoiceChip(binding.locationChipGroup, customLocation.getLocationKey(), customLocation.getDisplayName(), true);
+            addChoiceChip(binding.locationChipGroup, customLocation.getLocationKey(), customLocation.getDisplayName(), true,
+                    ChipPresentation.HIGHLIGHT_ONLY);
         }
         if (unknownLocationKey != null) {
             String label = CustomLocationKey.isCustomKey(unknownLocationKey)
                     ? customLocationFallbackLabel(unknownLocationKey)
                     : getString(R.string.unknown_location_format, unknownLocationKey);
-            addChoiceChip(binding.locationChipGroup, unknownLocationKey, label, true);
+            addChoiceChip(binding.locationChipGroup, unknownLocationKey, label, true, ChipPresentation.HIGHLIGHT_ONLY);
         }
     }
 
@@ -310,15 +318,16 @@ public class SleepLogFormActivity extends AppCompatActivity {
     }
 
     private void addTriStateChips(ChipGroup chipGroup) {
-        addChoiceChip(chipGroup, null, getString(R.string.answer_not_answered), true);
-        addChoiceChip(chipGroup, Boolean.TRUE, getString(R.string.answer_yes), true);
-        addChoiceChip(chipGroup, Boolean.FALSE, getString(R.string.answer_no), true);
+        addChoiceChip(chipGroup, null, getString(R.string.answer_not_answered), true, ChipPresentation.HIGHLIGHT_ONLY);
+        addChoiceChip(chipGroup, Boolean.TRUE, getString(R.string.answer_yes), true, ChipPresentation.HIGHLIGHT_ONLY);
+        addChoiceChip(chipGroup, Boolean.FALSE, getString(R.string.answer_no), true, ChipPresentation.HIGHLIGHT_ONLY);
     }
 
     private void addRatingChips(ChipGroup chipGroup) {
-        addChoiceChip(chipGroup, null, getString(R.string.not_rated), true);
+        addChoiceChip(chipGroup, null, getString(R.string.not_rated), true, ChipPresentation.HIGHLIGHT_ONLY);
         for (int rating = 1; rating <= 5; rating++) {
-            addChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating), true);
+            addChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating), true,
+                    ChipPresentation.HIGHLIGHT_ONLY);
         }
     }
 
@@ -343,11 +352,13 @@ public class SleepLogFormActivity extends AppCompatActivity {
             ));
             for (FormOption option : category.getOptions()) {
                 knownKeys.add(option.getKey());
-                addChoiceChip(chipGroup, option.getKey(), getString(option.getLabelResId()), false);
+                addChoiceChip(chipGroup, option.getKey(), getString(option.getLabelResId()), false,
+                        ChipPresentation.HIGHLIGHT_ONLY);
             }
             for (CustomSleepTagEntity tag : customTagsForCategory(category.getKey(), true)) {
                 knownKeys.add(tag.getTagKey());
-                addChoiceChip(chipGroup, tag.getTagKey(), tag.getDisplayName(), false);
+                addChoiceChip(chipGroup, tag.getTagKey(), tag.getDisplayName(), false,
+                        ChipPresentation.HIGHLIGHT_ONLY);
             }
         }
 
@@ -360,10 +371,11 @@ public class SleepLogFormActivity extends AppCompatActivity {
                     String label = customTag == null
                             ? customTagFallbackLabel(tagKey)
                             : getString(R.string.removed_tag_format, customTag.getDisplayName());
-                    addChoiceChip(chipGroup, tagKey, label, false);
+                    addChoiceChip(chipGroup, tagKey, label, false, ChipPresentation.HIGHLIGHT_ONLY);
                 } else {
                     ChipGroup chipGroup = findOrCreateUnknownTagGroup();
-                    addChoiceChip(chipGroup, tagKey, getString(R.string.unknown_tag_format, tagKey), false);
+                    addChoiceChip(chipGroup, tagKey, getString(R.string.unknown_tag_format, tagKey), false,
+                            ChipPresentation.HIGHLIGHT_ONLY);
                 }
             }
         }
@@ -431,8 +443,17 @@ public class SleepLogFormActivity extends AppCompatActivity {
         return chipGroup;
     }
 
-    private Chip addChoiceChip(ChipGroup chipGroup, Object value, String label, boolean singleChoice) {
-        Chip chip = (Chip) getLayoutInflater().inflate(R.layout.view_choice_chip, chipGroup, false);
+    private Chip addChoiceChip(
+            ChipGroup chipGroup,
+            Object value,
+            String label,
+            boolean singleChoice,
+            ChipPresentation presentation
+    ) {
+        int layoutResId = presentation == ChipPresentation.HIGHLIGHT_ONLY
+                ? R.layout.view_form_choice_chip_no_icon
+                : R.layout.view_choice_chip;
+        Chip chip = (Chip) getLayoutInflater().inflate(layoutResId, chipGroup, false);
         chip.setId(View.generateViewId());
         chip.setText(label);
         chip.setCheckable(true);
