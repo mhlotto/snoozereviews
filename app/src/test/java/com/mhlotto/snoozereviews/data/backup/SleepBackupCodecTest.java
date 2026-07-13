@@ -28,7 +28,7 @@ public class SleepBackupCodecTest {
         String json = codec.serialize(document());
 
         assertTrue(json.contains("\"format\": \"snooze-reviews-backup\""));
-        assertTrue(json.contains("\"version\": 3"));
+        assertTrue(json.contains("\"version\": 4"));
         assertTrue(json.contains("\"databaseVersion\": 4"));
         assertTrue(json.contains("\"customTags\": []"));
         assertTrue(json.contains("\"logs\": []"));
@@ -152,6 +152,21 @@ public class SleepBackupCodecTest {
     }
 
     @Test
+    public void versionFourPreservesZeroRatingsAndOlderVersionsRejectZeroRatings() throws Exception {
+        SleepLogEntity entity = entity("2026-07-10");
+        entity.setSleepRating(0);
+        entity.setRestedRating(null);
+
+        SleepBackupRecord record = codec.parse(codec.serialize(document(new SleepBackupRecord(entity, Collections.emptyList()))))
+                .getRecords()
+                .get(0);
+
+        assertEquals(Integer.valueOf(0), record.getSleepLog().getSleepRating());
+        assertNull(record.getSleepLog().getRestedRating());
+        assertInvalid(base("\"customTags\":[],\"logs\":[{\"nightDate\":\"2026-07-10\",\"sleepRating\":0,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]}]", 3, 4));
+    }
+
+    @Test
     public void ignoresUnknownExtraFields() throws Exception {
         String json = codec.serialize(document()).replace("\"logs\": []", "\"extra\": true,\n  \"logs\": []");
 
@@ -163,7 +178,7 @@ public class SleepBackupCodecTest {
         assertInvalid("not json");
         assertInvalid("{\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"wrong\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
-        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":4,\"databaseVersion\":4,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"customTags\":[],\"logs\":[]}");
+        assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":5,\"databaseVersion\":4,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"customTags\":[],\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":0,\"databaseVersion\":1,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":0,\"exportedAt\":\"2026-07-11T00:00:00Z\",\"logs\":[]}");
         assertInvalid("{\"format\":\"snooze-reviews-backup\",\"version\":1,\"databaseVersion\":1,\"exportedAt\":\"bad\",\"logs\":[]}");
@@ -174,7 +189,8 @@ public class SleepBackupCodecTest {
     public void rejectsInvalidRecordsAndDuplicateDates() {
         assertInvalid(withLog("\"nightDate\":\"bad\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"fellAsleepMinute\":1440,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
-        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"sleepRating\":0,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
+        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"sleepRating\":-1,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
+        assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"restedRating\":6,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"awakeningCount\":-1,\"createdAt\":1,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"createdAt\":2,\"updatedAt\":1,\"tags\":[]"));
         assertInvalid(withLog("\"nightDate\":\"2026-07-10\",\"createdAt\":1,\"updatedAt\":1,\"tags\":[\"\"]"));
@@ -228,7 +244,7 @@ public class SleepBackupCodecTest {
     }
 
     private String base(String tail) {
-        return base(tail, 3, 4);
+        return base(tail, 4, 4);
     }
 
     private String base(String tail, int version, int databaseVersion) {

@@ -57,7 +57,7 @@ Tri-state answers preserve all three values:
 - No: `false`
 - Not answered: `null`
 
-Ratings are optional values from `1` through `5`; `Not rated` stores `null`.
+Ratings are optional values from `0` through `5`. No selected rating chip stores `null` and means not rated. `0` is a real rating, not a missing value. Tapping the selected rating again clears it.
 
 When `Had dreams?` is Yes, the form shows an inline optional `Dream details` multiline field directly below that question. Toggling to No or Not answered hides the field but keeps temporary text during the current edit session. On save, dream details are persisted only when `Had dreams?` is Yes; otherwise the stored value is `null`.
 

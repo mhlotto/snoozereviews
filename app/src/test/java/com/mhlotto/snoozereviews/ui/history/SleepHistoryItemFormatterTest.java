@@ -84,6 +84,19 @@ public class SleepHistoryItemFormatterTest {
     }
 
     @Test
+    public void zeroRatingsRemainVisibleAndDistinctFromNullRatings() {
+        SleepLogEntity entity = entity(1, "2026-07-10");
+        entity.setSleepRating(0);
+        entity.setRestedRating(null);
+
+        SleepHistoryItem item = formatter.format(value(entity));
+
+        assertEquals("0/5", item.getSleepRatingLabel());
+        assertEquals("Not rated", item.getRestedRatingLabel());
+        assertEquals("Sleep: 0/5  |  Rested: Not rated", item.getRatingSummary());
+    }
+
+    @Test
     public void tagsFollowCatalogOrderUnknownsComeLastAndPreviewIsLimited() {
         SleepLogWithTags value = value(entity(1, "2026-07-10"));
         value.tags.add(new SleepLogTagEntity(1, "FUTURE_B"));

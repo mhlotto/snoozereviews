@@ -48,14 +48,14 @@ public class SleepLogFormStateTest {
         state.setSleptThroughNight(Boolean.TRUE);
         state.setHadDreams(Boolean.FALSE);
         state.setSleepRating(null);
-        state.setRestedRating(5);
+        state.setRestedRating(0);
 
         SleepLogEntity entity = state.toEntityForSave();
 
         assertEquals(Boolean.TRUE, entity.getSleptThroughNight());
         assertEquals(Boolean.FALSE, entity.getHadDreams());
         assertNull(entity.getSleepRating());
-        assertEquals(Integer.valueOf(5), entity.getRestedRating());
+        assertEquals(Integer.valueOf(0), entity.getRestedRating());
     }
 
     @Test
@@ -142,8 +142,17 @@ public class SleepLogFormStateTest {
         SleepLogFormState changed = new SleepLogFormState(original);
         changed.setSleepRating(5);
 
+        SleepLogFormState zeroRated = new SleepLogFormState(original);
+        zeroRated.setSleepRating(0);
+
+        SleepLogFormState clearedZero = new SleepLogFormState(zeroRated);
+        clearedZero.setSleepRating(null);
+
         assertFalse(reordered.isDirtyComparedTo(original));
         assertTrue(changed.isDirtyComparedTo(original));
+        assertTrue(zeroRated.isDirtyComparedTo(original));
+        assertTrue(clearedZero.isDirtyComparedTo(zeroRated));
+        assertFalse(original.equals(zeroRated));
     }
 
     @Test
@@ -156,8 +165,8 @@ public class SleepLogFormStateTest {
         state.setSleptThroughNight(null);
         state.setHadDreams(Boolean.TRUE);
         state.setDreamDetails("dream");
-        state.setSleepRating(1);
-        state.setRestedRating(2);
+        state.setSleepRating(0);
+        state.setRestedRating(null);
         state.setAwakeningCount(3);
         state.setNotes("note");
         state.setSelectedTagKeys(Arrays.asList(SleepTagKeys.CALM, "FUTURE_TAG"));

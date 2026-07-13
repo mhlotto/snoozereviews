@@ -56,7 +56,7 @@ Use this checklist for later device testing. Do not mark items complete unless t
 28. Rotate with visible and hidden dream details and confirm text is preserved.
 29. Confirm detail reports show dream details only when Had dreams is Yes.
 30. Confirm history rows still use compact tag previews and do not show dream text.
-31. Export and import a version 3 backup with dream details and custom tags.
+31. Export and import a version 4 backup with dream details, custom tags, and a zero rating.
 32. Import version 1 and 2 backups and confirm dream details default to empty.
 33. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
 34. Rotate during loading, editing, Settings, and backup/import operations.

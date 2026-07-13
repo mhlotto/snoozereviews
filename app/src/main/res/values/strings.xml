@@ -55,8 +55,8 @@
     <string name="answer_yes">Yes</string>
     <string name="answer_no">No</string>
     <string name="answer_not_answered">Not answered</string>
-    <string name="sleep_rating_label">Overall sleep quality, 1 low to 5 high</string>
-    <string name="rested_rating_label">How rested after waking, 1 low to 5 high</string>
+    <string name="sleep_rating_label">Overall sleep quality, 0 lowest to 5 highest. Tap the selected rating again to clear.</string>
+    <string name="rested_rating_label">How rested after waking, 0 lowest to 5 highest. Tap the selected rating again to clear.</string>
     <string name="not_rated">Not rated</string>
     <string name="rating_value">%1$d</string>
     <string name="awakening_count_label">Number of awakenings</string>

@@ -75,8 +75,8 @@ public final class SleepLogValidator {
     }
 
     private static Integer validateRating(Integer rating, String fieldName) {
-        if (rating != null && (rating < 1 || rating > 5)) {
-            throw new IllegalArgumentException(fieldName + " must be between 1 and 5");
+        if (rating != null && (rating < 0 || rating > 5)) {
+            throw new IllegalArgumentException(fieldName + " must be between 0 and 5");
         }
         return rating;
     }

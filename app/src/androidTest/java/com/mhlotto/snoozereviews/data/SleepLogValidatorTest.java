@@ -1,6 +1,7 @@
 package com.mhlotto.snoozereviews.data;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import com.mhlotto.snoozereviews.data.entity.SleepLogEntity;
@@ -34,9 +35,19 @@ public class SleepLogValidatorTest {
     }
 
     @Test
-    public void invalidRatingsFail() {
+    public void ratingsAllowNullZeroAndFiveButRejectOutOfRangeValues() {
+        SleepLogEntity valid = new SleepLogEntity("2026-07-10");
+        valid.setSleepRating(0);
+        valid.setRestedRating(5);
+        SleepLogEntity validated = SleepLogValidator.validatedCopyForWrite(valid);
+        assertEquals(Integer.valueOf(0), validated.getSleepRating());
+        assertEquals(Integer.valueOf(5), validated.getRestedRating());
+
+        SleepLogEntity unrated = new SleepLogEntity("2026-07-10");
+        assertNull(SleepLogValidator.validatedCopyForWrite(unrated).getSleepRating());
+
         SleepLogEntity low = new SleepLogEntity("2026-07-10");
-        low.setSleepRating(0);
+        low.setSleepRating(-1);
         assertThrows(IllegalArgumentException.class, () -> SleepLogValidator.validatedCopyForWrite(low));
 
         SleepLogEntity high = new SleepLogEntity("2026-07-10");

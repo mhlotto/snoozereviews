@@ -116,7 +116,7 @@ There is a unique index on `normalized_name`. Rows are soft-deactivated rather t
 - Sleep and wake times are nullable minutes after midnight from `0` through `1439`.
 - Nullable Boolean answers use `true`, `false`, or `null`.
 - Dream details are nullable text and are persisted only when `had_dreams` is `true`.
-- Sleep quality and rested ratings are nullable integers from `1` through `5`.
+- Sleep quality and rested ratings are nullable integers from `0` through `5`; `null` means not rated and `0` is a real rating.
 - `created_at` and `updated_at` are non-null UTC epoch milliseconds.
 - Unknown nonblank location and tag keys are preserved for forward compatibility.
 - Custom location keys use URL-safe Base64 without padding and start with `CUSTOM_B64:`.

@@ -234,6 +234,10 @@ public class SleepBackupCodec {
         }
         entity.setSleepRating(optionalInt(object, "sleepRating"));
         entity.setRestedRating(optionalInt(object, "restedRating"));
+        if (version < 4 && (Integer.valueOf(0).equals(entity.getSleepRating())
+                || Integer.valueOf(0).equals(entity.getRestedRating()))) {
+            throw new SleepBackupValidationException("Rating zero requires backup version 4.");
+        }
         entity.setAwakeningCount(optionalInt(object, "awakeningCount"));
         entity.setNotes(optionalString(object, "notes"));
         entity.setCreatedAt(requireLong(object, "createdAt"));

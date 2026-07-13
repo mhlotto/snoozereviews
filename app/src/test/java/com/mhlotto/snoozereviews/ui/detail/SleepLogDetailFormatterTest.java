@@ -90,12 +90,12 @@ public class SleepLogDetailFormatterTest {
     @Test
     public void ratingsFormatCorrectlyAndNullRatingsAreNotRated() {
         SleepLogEntity entity = baseEntity();
-        entity.setSleepRating(4);
+        entity.setSleepRating(0);
         entity.setRestedRating(null);
 
         SleepLogDetailViewState state = formatter.format(value(entity));
 
-        assertEquals("4 of 5", state.getSleepRating());
+        assertEquals("0 of 5", state.getSleepRating());
         assertEquals("Not rated", state.getRestedRating());
     }
 

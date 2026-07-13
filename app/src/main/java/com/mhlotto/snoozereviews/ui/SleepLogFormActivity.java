@@ -324,10 +324,23 @@ public class SleepLogFormActivity extends AppCompatActivity {
     }
 
     private void addRatingChips(ChipGroup chipGroup) {
-        addChoiceChip(chipGroup, null, getString(R.string.not_rated), true, ChipPresentation.HIGHLIGHT_ONLY);
-        for (int rating = 1; rating <= 5; rating++) {
-            addChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating), true,
+        chipGroup.setSingleSelection(false);
+        for (int rating = 0; rating <= 5; rating++) {
+            Chip chip = addChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating), false,
                     ChipPresentation.HIGHLIGHT_ONLY);
+            chip.setOnClickListener(view -> enforceOptionalSingleRatingSelection(chipGroup, chip));
+        }
+    }
+
+    private void enforceOptionalSingleRatingSelection(ChipGroup chipGroup, Chip selectedChip) {
+        if (!selectedChip.isChecked()) {
+            return;
+        }
+        for (int i = 0; i < chipGroup.getChildCount(); i++) {
+            View child = chipGroup.getChildAt(i);
+            if (child instanceof Chip && child != selectedChip) {
+                ((Chip) child).setChecked(false);
+            }
         }
     }
 
@@ -652,8 +665,8 @@ public class SleepLogFormActivity extends AppCompatActivity {
         state.setSleptThroughNight(getCheckedTag(binding.sleptThroughChipGroup, Boolean.class));
         state.setHadDreams(getCheckedTag(binding.hadDreamsChipGroup, Boolean.class));
         state.setDreamDetails(getText(binding.dreamDetailsInput.getText()));
-        state.setSleepRating(getCheckedTag(binding.sleepRatingChipGroup, Integer.class));
-        state.setRestedRating(getCheckedTag(binding.restedRatingChipGroup, Integer.class));
+        state.setSleepRating(getCheckedRating(binding.sleepRatingChipGroup));
+        state.setRestedRating(getCheckedRating(binding.restedRatingChipGroup));
         state.setAwakeningCount(parseAwakeningCount(showErrors));
         state.setNotes(getText(binding.notesInput.getText()));
         state.setSelectedTagKeys(collectSelectedTagKeys());
@@ -712,8 +725,8 @@ public class SleepLogFormActivity extends AppCompatActivity {
         checkChipForTag(binding.hadDreamsChipGroup, currentState.getHadDreams());
         binding.dreamDetailsInput.setText(currentState.getDreamDetails() == null ? "" : currentState.getDreamDetails());
         updateDreamDetailsVisibility();
-        checkChipForTag(binding.sleepRatingChipGroup, currentState.getSleepRating());
-        checkChipForTag(binding.restedRatingChipGroup, currentState.getRestedRating());
+        checkRatingChip(binding.sleepRatingChipGroup, currentState.getSleepRating());
+        checkRatingChip(binding.restedRatingChipGroup, currentState.getRestedRating());
         binding.awakeningCountInput.setText(currentState.getAwakeningCount() == null ? "" : String.valueOf(currentState.getAwakeningCount()));
         binding.notesInput.setText(currentState.getNotes() == null ? "" : currentState.getNotes());
         checkSelectedTags(currentState.getSelectedTagKeys());
@@ -949,6 +962,29 @@ public class SleepLogFormActivity extends AppCompatActivity {
         View checked = chipGroup.findViewById(checkedId);
         Object tag = checked == null ? null : checked.getTag();
         return type.isInstance(tag) ? type.cast(tag) : null;
+    }
+
+    private Integer getCheckedRating(ChipGroup chipGroup) {
+        for (int i = 0; i < chipGroup.getChildCount(); i++) {
+            View child = chipGroup.getChildAt(i);
+            if (child instanceof Chip && ((Chip) child).isChecked() && child.getTag() instanceof Integer) {
+                return (Integer) child.getTag();
+            }
+        }
+        return null;
+    }
+
+    private void checkRatingChip(ChipGroup chipGroup, Integer rating) {
+        for (int i = 0; i < chipGroup.getChildCount(); i++) {
+            View child = chipGroup.getChildAt(i);
+            if (child instanceof Chip) {
+                ((Chip) child).setChecked(false);
+            }
+        }
+        if (rating == null) {
+            return;
+        }
+        checkChipForTag(chipGroup, rating);
     }
 
     private void checkChipForTag(ChipGroup chipGroup, Object tag) {
