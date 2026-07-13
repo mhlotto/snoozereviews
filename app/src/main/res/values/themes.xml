@@ -88,4 +88,9 @@
         <item name="checkedIconTint">@color/snooze_choice_chip_icon</item>
         <item name="rippleColor">?attr/colorPrimary</item>
     </style>
+
+    <style name="Widget.SnoozeReviews.FormChoiceChip.NoIcon" parent="Widget.SnoozeReviews.ChoiceChip">
+        <item name="checkedIconVisible">false</item>
+        <item name="checkedIcon">@null</item>
+    </style>
 </resources>
