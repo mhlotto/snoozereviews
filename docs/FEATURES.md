@@ -51,17 +51,19 @@ Times are optional and stored as minutes after midnight from `0` through `1439`.
 
 ## Nullable answers, ratings, tags, and notes
 
-Tri-state answers preserve all three values:
+The slept-through-night and had-dreams questions are optional single-choice controls:
 
 - Yes: `true`
 - No: `false`
-- Not answered: `null`
+- No selected chip: `null` / not answered
+
+Tapping the selected Yes or No chip again clears the question back to unanswered. Detail reports still show `Not answered` as readable output for null values.
 
 Ratings are optional values from `0` through `5`. No selected rating chip stores `null` and means not rated. `0` is a real rating, not a missing value. Tapping the selected rating again clears it.
 
-When `Had dreams?` is Yes, the form shows an inline optional `Dream details` multiline field directly below that question. Toggling to No or Not answered hides the field but keeps temporary text during the current edit session. On save, dream details are persisted only when `Had dreams?` is Yes; otherwise the stored value is `null`.
+When `Had dreams?` is Yes, the form shows an inline optional `Dream details` multiline field directly below that question. Toggling to No or clearing the selection hides the field but keeps temporary text during the current edit session. On save, dream details are persisted only when `Had dreams?` is Yes; otherwise the stored value is `null`.
 
-Sleep locations and tags use stable keys rather than display labels. Unknown nonblank keys from existing data or backups are preserved and shown with safe fallback labels. Tags are stored as rows, not comma-separated text.
+Sleep location is optional. No selected location chip stores `null` and means unspecified; tapping the selected location again clears it. Sleep locations and tags use stable keys rather than display labels. Unknown nonblank keys from existing data or backups are preserved and shown with safe fallback labels. Tags are stored as rows, not comma-separated text.
 
 ### Built-in and custom sleep locations
 

@@ -59,6 +59,47 @@ public class SleepLogFormStateTest {
     }
 
     @Test
+    public void nullableQuestionStatePreservesNullTrueAndFalse() {
+        SleepLogFormState unanswered = SleepLogFormState.create("2026-07-10");
+        assertNull(unanswered.toEntityForSave().getSleptThroughNight());
+        assertNull(unanswered.toEntityForSave().getHadDreams());
+
+        SleepLogFormState yes = new SleepLogFormState(unanswered);
+        yes.setSleptThroughNight(Boolean.TRUE);
+        yes.setHadDreams(Boolean.TRUE);
+        assertEquals(Boolean.TRUE, yes.toEntityForSave().getSleptThroughNight());
+        assertEquals(Boolean.TRUE, yes.toEntityForSave().getHadDreams());
+
+        SleepLogFormState no = new SleepLogFormState(unanswered);
+        no.setSleptThroughNight(Boolean.FALSE);
+        no.setHadDreams(Boolean.FALSE);
+        assertEquals(Boolean.FALSE, no.toEntityForSave().getSleptThroughNight());
+        assertEquals(Boolean.FALSE, no.toEntityForSave().getHadDreams());
+
+        assertFalse(unanswered.equals(yes));
+        assertFalse(unanswered.equals(no));
+        assertFalse(yes.equals(no));
+    }
+
+    @Test
+    public void nullableLocationStatePreservesNullAndLocationKeys() {
+        SleepLogFormState unspecified = SleepLogFormState.create("2026-07-10");
+        assertNull(unspecified.toEntityForSave().getSleepLocation());
+
+        SleepLogFormState bed = new SleepLogFormState(unspecified);
+        bed.setSleepLocationKey(SleepLocationKeys.BED);
+
+        SleepLogFormState couch = new SleepLogFormState(unspecified);
+        couch.setSleepLocationKey(SleepLocationKeys.COUCH);
+
+        assertEquals(SleepLocationKeys.BED, bed.toEntityForSave().getSleepLocation());
+        assertEquals(SleepLocationKeys.COUCH, couch.toEntityForSave().getSleepLocation());
+        assertTrue(bed.isDirtyComparedTo(unspecified));
+        assertTrue(unspecified.isDirtyComparedTo(bed));
+        assertTrue(couch.isDirtyComparedTo(bed));
+    }
+
+    @Test
     public void dreamDetailsPersistOnlyWhenHadDreamsIsYes() {
         SleepLogFormState yes = SleepLogFormState.create("2026-07-10");
         yes.setHadDreams(Boolean.TRUE);
@@ -80,6 +121,7 @@ public class SleepLogFormStateTest {
         unanswered.setHadDreams(null);
         unanswered.setDreamDetails("Hidden text");
         assertNull(unanswered.toEntityForSave().getDreamDetails());
+        assertEquals("Hidden text", unanswered.getDreamDetails());
     }
 
     @Test
@@ -148,10 +190,34 @@ public class SleepLogFormStateTest {
         SleepLogFormState clearedZero = new SleepLogFormState(zeroRated);
         clearedZero.setSleepRating(null);
 
+        SleepLogFormState sleptThrough = new SleepLogFormState(original);
+        sleptThrough.setSleptThroughNight(Boolean.TRUE);
+
+        SleepLogFormState clearedSleptThrough = new SleepLogFormState(sleptThrough);
+        clearedSleptThrough.setSleptThroughNight(null);
+
+        SleepLogFormState didNotSleepThrough = new SleepLogFormState(original);
+        didNotSleepThrough.setSleptThroughNight(Boolean.FALSE);
+
+        SleepLogFormState clearedDidNotSleepThrough = new SleepLogFormState(didNotSleepThrough);
+        clearedDidNotSleepThrough.setSleptThroughNight(null);
+
+        SleepLogFormState located = new SleepLogFormState(original);
+        located.setSleepLocationKey(SleepLocationKeys.BED);
+
+        SleepLogFormState clearedLocation = new SleepLogFormState(located);
+        clearedLocation.setSleepLocationKey(null);
+
         assertFalse(reordered.isDirtyComparedTo(original));
         assertTrue(changed.isDirtyComparedTo(original));
         assertTrue(zeroRated.isDirtyComparedTo(original));
         assertTrue(clearedZero.isDirtyComparedTo(zeroRated));
+        assertTrue(sleptThrough.isDirtyComparedTo(original));
+        assertTrue(clearedSleptThrough.isDirtyComparedTo(sleptThrough));
+        assertTrue(didNotSleepThrough.isDirtyComparedTo(original));
+        assertTrue(clearedDidNotSleepThrough.isDirtyComparedTo(didNotSleepThrough));
+        assertTrue(located.isDirtyComparedTo(original));
+        assertTrue(clearedLocation.isDirtyComparedTo(located));
         assertFalse(original.equals(zeroRated));
     }
 

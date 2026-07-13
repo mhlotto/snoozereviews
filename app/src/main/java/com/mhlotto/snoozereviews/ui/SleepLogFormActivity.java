@@ -255,21 +255,20 @@ public class SleepLogFormActivity extends AppCompatActivity {
 
     private void addLocationChips(String unknownLocationKey) {
         binding.locationChipGroup.removeAllViews();
-        addChoiceChip(binding.locationChipGroup, null, getString(R.string.sleep_location_not_specified), true,
-                ChipPresentation.HIGHLIGHT_ONLY);
+        configureOptionalSingleChoiceGroup(binding.locationChipGroup);
         for (FormOption option : SleepLogFormCatalog.LOCATION_OPTIONS) {
-            addChoiceChip(binding.locationChipGroup, option.getKey(), getString(option.getLabelResId()), true,
+            addOptionalSingleChoiceChip(binding.locationChipGroup, option.getKey(), getString(option.getLabelResId()),
                     ChipPresentation.HIGHLIGHT_ONLY);
         }
         for (CustomSleepLocationEntity customLocation : activeCustomLocations) {
-            addChoiceChip(binding.locationChipGroup, customLocation.getLocationKey(), customLocation.getDisplayName(), true,
+            addOptionalSingleChoiceChip(binding.locationChipGroup, customLocation.getLocationKey(), customLocation.getDisplayName(),
                     ChipPresentation.HIGHLIGHT_ONLY);
         }
         if (unknownLocationKey != null) {
             String label = CustomLocationKey.isCustomKey(unknownLocationKey)
                     ? customLocationFallbackLabel(unknownLocationKey)
                     : getString(R.string.unknown_location_format, unknownLocationKey);
-            addChoiceChip(binding.locationChipGroup, unknownLocationKey, label, true, ChipPresentation.HIGHLIGHT_ONLY);
+            addOptionalSingleChoiceChip(binding.locationChipGroup, unknownLocationKey, label, ChipPresentation.HIGHLIGHT_ONLY);
         }
     }
 
@@ -318,21 +317,34 @@ public class SleepLogFormActivity extends AppCompatActivity {
     }
 
     private void addTriStateChips(ChipGroup chipGroup) {
-        addChoiceChip(chipGroup, null, getString(R.string.answer_not_answered), true, ChipPresentation.HIGHLIGHT_ONLY);
-        addChoiceChip(chipGroup, Boolean.TRUE, getString(R.string.answer_yes), true, ChipPresentation.HIGHLIGHT_ONLY);
-        addChoiceChip(chipGroup, Boolean.FALSE, getString(R.string.answer_no), true, ChipPresentation.HIGHLIGHT_ONLY);
+        configureOptionalSingleChoiceGroup(chipGroup);
+        addOptionalSingleChoiceChip(chipGroup, Boolean.TRUE, getString(R.string.answer_yes),
+                ChipPresentation.HIGHLIGHT_ONLY);
+        addOptionalSingleChoiceChip(chipGroup, Boolean.FALSE, getString(R.string.answer_no),
+                ChipPresentation.HIGHLIGHT_ONLY);
     }
 
     private void addRatingChips(ChipGroup chipGroup) {
-        chipGroup.setSingleSelection(false);
+        configureOptionalSingleChoiceGroup(chipGroup);
         for (int rating = 0; rating <= 5; rating++) {
-            Chip chip = addChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating), false,
+            addOptionalSingleChoiceChip(chipGroup, rating, getString(R.string.rating_value, rating),
                     ChipPresentation.HIGHLIGHT_ONLY);
-            chip.setOnClickListener(view -> enforceOptionalSingleRatingSelection(chipGroup, chip));
         }
     }
 
-    private void enforceOptionalSingleRatingSelection(ChipGroup chipGroup, Chip selectedChip) {
+    private void configureOptionalSingleChoiceGroup(ChipGroup chipGroup) {
+        chipGroup.setSingleSelection(false);
+        chipGroup.setSelectionRequired(false);
+    }
+
+    private Chip addOptionalSingleChoiceChip(ChipGroup chipGroup, Object tag, String label,
+                                             ChipPresentation presentation) {
+        Chip chip = addChoiceChip(chipGroup, tag, label, false, presentation);
+        chip.setOnClickListener(view -> enforceOptionalSingleChoiceSelection(chipGroup, chip));
+        return chip;
+    }
+
+    private void enforceOptionalSingleChoiceSelection(ChipGroup chipGroup, Chip selectedChip) {
         if (!selectedChip.isChecked()) {
             return;
         }
@@ -720,13 +732,13 @@ public class SleepLogFormActivity extends AppCompatActivity {
         addTagSections(unknownTagKeys(currentState.getSelectedTagKeys()));
         updateDateInput();
         updateTimeButtons();
-        checkChipForTag(binding.locationChipGroup, currentState.getSleepLocationKey());
-        checkChipForTag(binding.sleptThroughChipGroup, currentState.getSleptThroughNight());
-        checkChipForTag(binding.hadDreamsChipGroup, currentState.getHadDreams());
+        checkOptionalSingleChoiceChip(binding.locationChipGroup, currentState.getSleepLocationKey());
+        checkOptionalSingleChoiceChip(binding.sleptThroughChipGroup, currentState.getSleptThroughNight());
+        checkOptionalSingleChoiceChip(binding.hadDreamsChipGroup, currentState.getHadDreams());
         binding.dreamDetailsInput.setText(currentState.getDreamDetails() == null ? "" : currentState.getDreamDetails());
         updateDreamDetailsVisibility();
-        checkRatingChip(binding.sleepRatingChipGroup, currentState.getSleepRating());
-        checkRatingChip(binding.restedRatingChipGroup, currentState.getRestedRating());
+        checkOptionalSingleChoiceChip(binding.sleepRatingChipGroup, currentState.getSleepRating());
+        checkOptionalSingleChoiceChip(binding.restedRatingChipGroup, currentState.getRestedRating());
         binding.awakeningCountInput.setText(currentState.getAwakeningCount() == null ? "" : String.valueOf(currentState.getAwakeningCount()));
         binding.notesInput.setText(currentState.getNotes() == null ? "" : currentState.getNotes());
         checkSelectedTags(currentState.getSelectedTagKeys());
@@ -955,42 +967,35 @@ public class SleepLogFormActivity extends AppCompatActivity {
     }
 
     private <T> T getCheckedTag(ChipGroup chipGroup, Class<T> type) {
-        int checkedId = chipGroup.getCheckedChipId();
-        if (checkedId == View.NO_ID) {
-            return null;
-        }
-        View checked = chipGroup.findViewById(checkedId);
-        Object tag = checked == null ? null : checked.getTag();
-        return type.isInstance(tag) ? type.cast(tag) : null;
-    }
-
-    private Integer getCheckedRating(ChipGroup chipGroup) {
         for (int i = 0; i < chipGroup.getChildCount(); i++) {
             View child = chipGroup.getChildAt(i);
-            if (child instanceof Chip && ((Chip) child).isChecked() && child.getTag() instanceof Integer) {
-                return (Integer) child.getTag();
+            if (child instanceof Chip && ((Chip) child).isChecked()) {
+                Object tag = child.getTag();
+                if (type.isInstance(tag)) {
+                    return type.cast(tag);
+                }
             }
         }
         return null;
     }
 
-    private void checkRatingChip(ChipGroup chipGroup, Integer rating) {
+    private Integer getCheckedRating(ChipGroup chipGroup) {
+        return getCheckedTag(chipGroup, Integer.class);
+    }
+
+    private void checkOptionalSingleChoiceChip(ChipGroup chipGroup, Object tag) {
         for (int i = 0; i < chipGroup.getChildCount(); i++) {
             View child = chipGroup.getChildAt(i);
             if (child instanceof Chip) {
                 ((Chip) child).setChecked(false);
             }
         }
-        if (rating == null) {
+        if (tag == null) {
             return;
         }
-        checkChipForTag(chipGroup, rating);
-    }
-
-    private void checkChipForTag(ChipGroup chipGroup, Object tag) {
         for (int i = 0; i < chipGroup.getChildCount(); i++) {
             View child = chipGroup.getChildAt(i);
-            if (child instanceof Chip && (tag == null ? child.getTag() == null : tag.equals(child.getTag()))) {
+            if (child instanceof Chip && tag.equals(child.getTag())) {
                 ((Chip) child).setChecked(true);
                 return;
             }
