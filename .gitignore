@@ -2,6 +2,7 @@
 .gradle/
 build/
 **/build/
+dist/
 
 local.properties
 .gradle/

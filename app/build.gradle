@@ -2,6 +2,38 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+def versionPropertiesFile = rootProject.file("version.properties")
+if (!versionPropertiesFile.isFile()) {
+    throw new GradleException("Missing version.properties at project root")
+}
+
+def versionProperties = new Properties()
+versionPropertiesFile.withInputStream { stream ->
+    versionProperties.load(stream)
+}
+
+def appVersionName = versionProperties.getProperty("VERSION_NAME")
+def appVersionCodeText = versionProperties.getProperty("VERSION_CODE")
+if (appVersionName == null || appVersionName.trim().isEmpty()) {
+    throw new GradleException("VERSION_NAME is required in version.properties")
+}
+if (!(appVersionName ==~ /(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)/)) {
+    throw new GradleException("VERSION_NAME must use MAJOR.MINOR.PATCH numeric semantic versioning")
+}
+if (appVersionCodeText == null || appVersionCodeText.trim().isEmpty()) {
+    throw new GradleException("VERSION_CODE is required in version.properties")
+}
+
+def appVersionCode
+try {
+    appVersionCode = Integer.parseInt(appVersionCodeText.trim())
+} catch (NumberFormatException ignored) {
+    throw new GradleException("VERSION_CODE must be a positive integer")
+}
+if (appVersionCode <= 0) {
+    throw new GradleException("VERSION_CODE must be a positive integer")
+}
+
 android {
     namespace "com.mhlotto.snoozereviews"
     compileSdk 36
@@ -10,8 +42,8 @@ android {
         applicationId "com.mhlotto.snoozereviews"
         minSdk 29
         targetSdk 36
-        versionCode 1
-        versionName "0.1.0"
+        versionCode appVersionCode
+        versionName appVersionName
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 

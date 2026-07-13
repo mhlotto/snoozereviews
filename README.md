@@ -64,6 +64,8 @@ Equivalent primary Gradle build command:
 ./gradlew assembleDebug
 ```
 
+Release tooling is documented in [docs/RELEASING.md](docs/RELEASING.md). Normal local releases use `make release-patch`, `make release-minor`, or `make release-major`.
+
 ## Install and run
 
 Install the debug build on a connected device or emulator:
@@ -99,6 +101,7 @@ ImageMagick 7 is required. See [docs/VISUALS.md](docs/VISUALS.md) and [artwork/R
 - [Features](docs/FEATURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Backup and restore](docs/BACKUP_AND_RESTORE.md)
+- [Releasing](docs/RELEASING.md)
 - [Visual system](docs/VISUALS.md)
 - [Testing and manual validation](TESTING.md)
 
