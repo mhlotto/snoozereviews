@@ -32,44 +32,48 @@ Use this checklist for later device testing. Do not mark items complete unless t
 4. Create a fully populated sleep log.
 5. Restart the app and verify last-night detail routing.
 6. Edit a log and clear optional fields.
-7. Confirm optional questions, ratings, and sleep location clear when the selected chip is tapped again.
-8. Confirm no explicit `Not answered`, `Not rated`, or `Not specified` chips appear in the form.
-9. Add a historical date through Add by Date.
-10. Attempt a duplicate date through Add by Date and the form.
-11. Browse history.
-12. Edit from history and verify row refresh and reorder.
-13. Navigate between History, Stats, Add by Date, Backup and Restore, and Settings.
-14. Test dirty-form navigation with Keep editing and Discard.
-15. Export a backup.
-16. Import into empty app data.
-17. Import over matching dates and verify replacement.
-18. Verify local-only records remain after import.
-19. Cancel import and export document pickers.
-20. Add, duplicate, remove, and restore a custom sleep location in Settings.
-21. Confirm removed custom locations disappear from new form choices.
-22. Confirm old logs with removed custom locations still display the location.
-23. Add, duplicate, remove, restore, and recategorize a custom descriptive tag in Settings.
-24. Confirm removed custom tags disappear from new form choices.
-25. Confirm old logs with removed custom tags still display the tag.
-26. Confirm detail reports group selected tags under nonempty category headings.
-27. Confirm orphaned and unknown selected tags appear under `Other`.
-28. Toggle Had dreams Yes -> enter dream details -> clear selection -> Yes and confirm text returns.
-29. Save dream details, edit them, then save No and confirm they are cleared.
-30. Rotate with visible and hidden dream details and confirm text is preserved.
-31. Confirm detail reports show dream details only when Had dreams is Yes.
-32. Confirm history rows still use compact tag previews and do not show dream text.
-33. Export and import a version 4 backup with dream details, custom tags, and a zero rating.
-34. Import version 1 and 2 backups and confirm dream details default to empty.
-35. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
-36. Rotate during loading, editing, Settings, and backup/import operations.
-37. Test dark theme.
-38. Test increased font size.
-39. Test TalkBack labels where available.
-40. Test Android 12+ splash behavior.
-41. Test pre-Android 12 splash behavior if an older device is available.
-42. Confirm the launcher icon remains recognizable under circle, rounded-square, squircle, and OEM masks.
-43. Confirm the themed monochrome icon is legible where themed icons are enabled.
-44. Confirm startup has no white flash before or after the native splash.
+7. Confirm Night date is the only form field with a required marker and is announced as required.
+8. Confirm form labels do not repeat `(optional)` wording.
+9. Set and clear fell-asleep and wake times from the compact clock-style controls.
+10. Confirm the duration preview appears only when both times are set and updates when either changes.
+11. Confirm optional questions, ratings, and sleep location clear when the selected chip is tapped again.
+12. Confirm no explicit `Not answered`, `Not rated`, or `Not specified` chips appear in the form.
+13. Add a historical date through Add by Date.
+14. Attempt a duplicate date through Add by Date and the form.
+15. Browse history.
+16. Edit from history and verify row refresh and reorder.
+17. Navigate between History, Stats, Add by Date, Backup and Restore, and Settings.
+18. Test dirty-form navigation with Keep editing and Discard.
+19. Export a backup.
+20. Import into empty app data.
+21. Import over matching dates and verify replacement.
+22. Verify local-only records remain after import.
+23. Cancel import and export document pickers.
+24. Add, duplicate, remove, and restore a custom sleep location in Settings.
+25. Confirm removed custom locations disappear from new form choices.
+26. Confirm old logs with removed custom locations still display the location.
+27. Add, duplicate, remove, restore, and recategorize a custom descriptive tag in Settings.
+28. Confirm removed custom tags disappear from new form choices.
+29. Confirm old logs with removed custom tags still display the tag.
+30. Confirm detail reports group selected tags under nonempty category headings.
+31. Confirm orphaned and unknown selected tags appear under `Other`.
+32. Toggle Had dreams Yes -> enter dream details -> clear selection -> Yes and confirm text returns.
+33. Save dream details, edit them, then save No and confirm they are cleared.
+34. Rotate with visible and hidden dream details and confirm text is preserved.
+35. Confirm detail reports show dream details only when Had dreams is Yes.
+36. Confirm history rows still use compact tag previews and do not show dream text.
+37. Export and import a version 4 backup with dream details, custom tags, and a zero rating.
+38. Import version 1 and 2 backups and confirm dream details default to empty.
+39. Import a version 1 backup containing encoded custom tag keys and confirm they appear in `Other`.
+40. Rotate during loading, editing, Settings, and backup/import operations.
+41. Test dark theme.
+42. Test increased font size.
+43. Test TalkBack labels where available.
+44. Test Android 12+ splash behavior.
+45. Test pre-Android 12 splash behavior if an older device is available.
+46. Confirm the launcher icon remains recognizable under circle, rounded-square, squircle, and OEM masks.
+47. Confirm the themed monochrome icon is legible where themed icons are enabled.
+48. Confirm startup has no white flash before or after the native splash.
 
 ## Accessibility And Layout Checklist
 

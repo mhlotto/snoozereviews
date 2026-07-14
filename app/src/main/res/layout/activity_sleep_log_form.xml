@@ -110,12 +110,13 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
-                        android:hint="@string/night_date_label">
+                        android:hint="@string/night_date_required_label">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/night_date_input"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
+                            android:contentDescription="@string/night_date_required_content_description"
                             android:clickable="true"
                             android:focusable="false"
                             android:inputType="none" />
@@ -150,37 +151,33 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/spacing_small"
-                        android:orientation="vertical">
+                        android:baselineAligned="false"
+                        android:orientation="horizontal">
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/fell_asleep_button"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="match_parent"
+                        <include
+                            android:id="@+id/fell_asleep_time_field"
+                            layout="@layout/view_sleep_time_field"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:minHeight="@dimen/touch_target_min" />
+                            android:layout_weight="1" />
 
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/clear_fell_asleep_button"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
+                        <include
+                            android:id="@+id/woke_up_time_field"
+                            layout="@layout/view_sleep_time_field"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/clear_time" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/woke_up_button"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/spacing_small"
-                            android:minHeight="@dimen/touch_target_min" />
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/clear_woke_up_button"
-                            style="@style/Widget.Material3.Button.TextButton"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/clear_time" />
+                            android:layout_marginStart="@dimen/spacing_small"
+                            android:layout_weight="1" />
                     </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/duration_preview"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/spacing_small"
+                        android:textAppearance="@style/TextAppearance.SnoozeReviews.Supporting"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:visibility="gone" />
 
                     <TextView
                         android:layout_width="wrap_content"

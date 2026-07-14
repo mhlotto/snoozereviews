@@ -1,7 +1,6 @@
 package com.mhlotto.snoozereviews.ui;
 
 import android.app.DatePickerDialog;
-import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.database.sqlite.SQLiteConstraintException;
@@ -25,6 +24,8 @@ import androidx.core.widget.NestedScrollView;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.android.material.timepicker.MaterialTimePicker;
+import com.google.android.material.timepicker.TimeFormat;
 import com.mhlotto.snoozereviews.R;
 import com.mhlotto.snoozereviews.data.SleepLogRepository;
 import com.mhlotto.snoozereviews.data.SleepLogWithTags;
@@ -37,6 +38,8 @@ import com.mhlotto.snoozereviews.data.tag.CustomSleepTagKey;
 import com.mhlotto.snoozereviews.data.tag.CustomSleepTagRepository;
 import com.mhlotto.snoozereviews.data.tag.SleepTagCategoryKeys;
 import com.mhlotto.snoozereviews.databinding.ActivitySleepLogFormBinding;
+import com.mhlotto.snoozereviews.databinding.ViewSleepTimeFieldBinding;
+import com.mhlotto.snoozereviews.ui.detail.SleepDurationHelper;
 import com.mhlotto.snoozereviews.ui.detail.SleepLogDetailFormatter;
 import com.mhlotto.snoozereviews.ui.form.FormOption;
 import com.mhlotto.snoozereviews.ui.form.FormInputParser;
@@ -502,15 +505,15 @@ public class SleepLogFormActivity extends AppCompatActivity {
         binding.retryButton.setOnClickListener(view -> loadEditRecord());
         binding.saveButton.setOnClickListener(view -> save());
         binding.nightDateInput.setOnClickListener(view -> showDatePicker());
-        binding.fellAsleepButton.setOnClickListener(view -> showTimePicker(true));
-        binding.wokeUpButton.setOnClickListener(view -> showTimePicker(false));
-        binding.clearFellAsleepButton.setOnClickListener(view -> {
+        binding.fellAsleepTimeField.timeCard.setOnClickListener(view -> showTimePicker(true));
+        binding.wokeUpTimeField.timeCard.setOnClickListener(view -> showTimePicker(false));
+        binding.fellAsleepTimeField.clearTimeButton.setOnClickListener(view -> {
             currentState.setFellAsleepMinute(null);
-            updateTimeButtons();
+            updateTimeFields();
         });
-        binding.clearWokeUpButton.setOnClickListener(view -> {
+        binding.wokeUpTimeField.clearTimeButton.setOnClickListener(view -> {
             currentState.setWokeUpMinute(null);
-            updateTimeButtons();
+            updateTimeFields();
         });
         TextWatcher watcher = new SimpleTextWatcher() {
             @Override
@@ -567,22 +570,23 @@ public class SleepLogFormActivity extends AppCompatActivity {
         int hour = value == null ? 22 : TimeOfDayHelper.hourOfDay(value);
         int minute = value == null ? 0 : TimeOfDayHelper.minute(value);
         boolean use24Hour = DateFormat.is24HourFormat(this);
-        TimePickerDialog dialog = new TimePickerDialog(
-                this,
-                (view, hourOfDay, selectedMinute) -> {
-                    int minuteOfDay = TimeOfDayHelper.toMinuteOfDay(hourOfDay, selectedMinute);
-                    if (fellAsleep) {
-                        currentState.setFellAsleepMinute(minuteOfDay);
-                    } else {
-                        currentState.setWokeUpMinute(minuteOfDay);
-                    }
-                    updateTimeButtons();
-                },
-                hour,
-                minute,
-                use24Hour
-        );
-        dialog.show();
+        MaterialTimePicker picker = new MaterialTimePicker.Builder()
+                .setTimeFormat(use24Hour ? TimeFormat.CLOCK_24H : TimeFormat.CLOCK_12H)
+                .setInputMode(MaterialTimePicker.INPUT_MODE_CLOCK)
+                .setHour(hour)
+                .setMinute(minute)
+                .setTitleText(fellAsleep ? R.string.fell_asleep_label : R.string.woke_up_label)
+                .build();
+        picker.addOnPositiveButtonClickListener(view -> {
+            int minuteOfDay = TimeOfDayHelper.toMinuteOfDay(picker.getHour(), picker.getMinute());
+            if (fellAsleep) {
+                currentState.setFellAsleepMinute(minuteOfDay);
+            } else {
+                currentState.setWokeUpMinute(minuteOfDay);
+            }
+            updateTimeFields();
+        });
+        picker.show(getSupportFragmentManager(), fellAsleep ? "fell_asleep_time_picker" : "woke_up_time_picker");
     }
 
     private void save() {
@@ -731,7 +735,7 @@ public class SleepLogFormActivity extends AppCompatActivity {
         addLocationChips(isAvailableLocation(currentState.getSleepLocationKey()) ? null : currentState.getSleepLocationKey());
         addTagSections(unknownTagKeys(currentState.getSelectedTagKeys()));
         updateDateInput();
-        updateTimeButtons();
+        updateTimeFields();
         checkOptionalSingleChoiceChip(binding.locationChipGroup, currentState.getSleepLocationKey());
         checkOptionalSingleChoiceChip(binding.sleptThroughChipGroup, currentState.getSleptThroughNight());
         checkOptionalSingleChoiceChip(binding.hadDreamsChipGroup, currentState.getHadDreams());
@@ -758,19 +762,55 @@ public class SleepLogFormActivity extends AppCompatActivity {
         binding.nightDateInput.setText(formatted);
     }
 
-    private void updateTimeButtons() {
-        updateTimeButton(binding.fellAsleepButton, R.string.fell_asleep_time, currentState.getFellAsleepMinute());
-        updateTimeButton(binding.wokeUpButton, R.string.woke_up_time, currentState.getWokeUpMinute());
+    private void updateTimeFields() {
+        updateTimeField(binding.fellAsleepTimeField, R.string.fell_asleep_label,
+                R.string.clear_fell_asleep_time, currentState.getFellAsleepMinute());
+        updateTimeField(binding.wokeUpTimeField, R.string.woke_up_label,
+                R.string.clear_wake_time, currentState.getWokeUpMinute());
+        updateDurationPreview();
     }
 
-    private void updateTimeButton(com.google.android.material.button.MaterialButton button, int labelResId, Integer minute) {
+    private void updateTimeField(ViewSleepTimeFieldBinding field, int labelResId, int clearContentDescriptionResId, Integer minute) {
         String label = getString(labelResId);
+        field.timeLabel.setText(label);
+        field.clearTimeButton.setContentDescription(getString(clearContentDescriptionResId));
         if (minute == null) {
-            button.setText(getString(R.string.time_not_set, label));
+            field.timeValue.setText(R.string.add_time);
+            field.timeValue.setTextColor(resolveColor(com.google.android.material.R.attr.colorOnSurfaceVariant));
+            field.clearTimeButton.setVisibility(View.GONE);
+            field.timeCard.setContentDescription(getString(R.string.time_field_not_set_content_description, label));
         } else {
-            button.setText(getString(R.string.time_set_format, label,
-                    TimeOfDayHelper.formatMinuteOfDay(minute, Locale.getDefault(), DateFormat.is24HourFormat(this))));
+            String formatted = TimeOfDayHelper.formatMinuteOfDay(minute, Locale.getDefault(), DateFormat.is24HourFormat(this));
+            field.timeValue.setText(formatted);
+            field.timeValue.setTextColor(resolveColor(com.google.android.material.R.attr.colorOnSurface));
+            field.clearTimeButton.setVisibility(View.VISIBLE);
+            field.timeCard.setContentDescription(getString(R.string.time_field_set_content_description, label, formatted));
         }
+    }
+
+    private void updateDurationPreview() {
+        Integer duration = SleepDurationHelper.calculateDurationMinutes(
+                currentState.getFellAsleepMinute(),
+                currentState.getWokeUpMinute()
+        );
+        if (duration == null) {
+            binding.durationPreview.setVisibility(View.GONE);
+            return;
+        }
+        binding.durationPreview.setText(getString(R.string.duration_preview_format, formatDurationPreview(duration)));
+        binding.durationPreview.setVisibility(View.VISIBLE);
+    }
+
+    private String formatDurationPreview(int durationMinutes) {
+        int hours = durationMinutes / 60;
+        int minutes = durationMinutes % 60;
+        if (hours == 0) {
+            return getString(R.string.duration_preview_minutes, minutes);
+        }
+        if (minutes == 0) {
+            return getString(R.string.duration_preview_hours, hours);
+        }
+        return getString(R.string.duration_preview_hours_minutes, hours, minutes);
     }
 
     private void showLoading() {

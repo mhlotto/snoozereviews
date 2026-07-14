@@ -100,6 +100,27 @@ public class SleepLogFormStateTest {
     }
 
     @Test
+    public void nullableTimeStatePreservesNullMidnightAndDirtyChanges() {
+        SleepLogFormState noTimes = SleepLogFormState.create("2026-07-10");
+        assertNull(noTimes.toEntityForSave().getFellAsleepMinute());
+        assertNull(noTimes.toEntityForSave().getWokeUpMinute());
+
+        SleepLogFormState midnight = new SleepLogFormState(noTimes);
+        midnight.setFellAsleepMinute(0);
+        midnight.setWokeUpMinute(1439);
+
+        assertEquals(Integer.valueOf(0), midnight.toEntityForSave().getFellAsleepMinute());
+        assertEquals(Integer.valueOf(1439), midnight.toEntityForSave().getWokeUpMinute());
+        assertTrue(midnight.isDirtyComparedTo(noTimes));
+
+        SleepLogFormState cleared = new SleepLogFormState(midnight);
+        cleared.setFellAsleepMinute(null);
+        cleared.setWokeUpMinute(null);
+        assertTrue(cleared.isDirtyComparedTo(midnight));
+        assertFalse(cleared.isDirtyComparedTo(noTimes));
+    }
+
+    @Test
     public void dreamDetailsPersistOnlyWhenHadDreamsIsYes() {
         SleepLogFormState yes = SleepLogFormState.create("2026-07-10");
         yes.setHadDreams(Boolean.TRUE);

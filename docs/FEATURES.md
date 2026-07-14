@@ -29,7 +29,7 @@ After routing, the splash Activity finishes so Back does not return to splash.
 
 Supported fields:
 
-- Night date
+- Night date, marked with a compact required indicator
 - Optional sleep location
 - Optional fell-asleep and woke-up times
 - Optional tri-state questions for slept-through-night and had-dreams
@@ -47,7 +47,9 @@ Night dates are stored as canonical ISO text, `yyyy-MM-dd`, and represent the lo
 
 Add by Date is stricter: it is for completed historical nights and allows only yesterday or earlier.
 
-Times are optional and stored as minutes after midnight from `0` through `1439`. The app does not store full sleep/wake timestamps or calculated duration. Wake times earlier than sleep times are allowed because they commonly mean the sleep crossed midnight.
+Most form labels do not repeat optional wording. Empty controls represent missing optional values. Sleep and wake times use compact clock-style controls: tap a time field to set or edit it, and use the trailing clear action to remove a saved time.
+
+Times are stored as minutes after midnight from `0` through `1439`. The app does not store full sleep/wake timestamps or calculated duration. Wake times earlier than sleep times are allowed because they commonly mean the sleep crossed midnight. The form shows a duration preview when both times are available.
 
 ## Nullable answers, ratings, tags, and notes
 
