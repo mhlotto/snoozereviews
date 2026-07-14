@@ -12,6 +12,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.XmlResourceParser;
+import android.graphics.BitmapFactory;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 
@@ -89,6 +90,12 @@ public class ManifestSecurityTest {
         assertTrue(context.getResources().getResourceName(R.drawable.snooze_splash_full).contains("snooze_splash_full"));
         assertTrue(context.getResources().getResourceName(R.color.snooze_splash_background).contains("snooze_splash_background"));
         assertTrue(context.getResources().getResourceName(R.layout.activity_splash).contains("activity_splash"));
+
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeResource(context.getResources(), R.drawable.snooze_splash_full, options);
+        assertEquals(941, options.outWidth);
+        assertEquals(1672, options.outHeight);
     }
 
     @Test

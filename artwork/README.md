@@ -1,6 +1,8 @@
 # Snooze Reviews Artwork
 
-`../snooze-splash-base.png` is the approved source illustration and should remain at the repository root. Do not overwrite or edit it in place.
+`../snooze-splash-base.png` is the approved titled full-screen splash illustration and should remain at the repository root. Do not overwrite or edit it in place except when replacing it with a newly approved splash source.
+
+`snooze-icon-source.png` is the preserved untitled illustration used for launcher and compact splash icons. Do not replace it with the titled splash art; title text is intentionally excluded from small icon resources.
 
 Generated assets are produced with:
 
@@ -12,12 +14,23 @@ The script requires ImageMagick 7 through the `magick` command. It uses `pngchec
 
 ## Source, Crop, And Outputs
 
-The approved source artwork is:
+The approved full-screen splash source artwork is:
 
 ```text
 snooze-splash-base.png
 941 x 1672 PNG
 ```
+
+It contains the `Snooze Reviews` title and is used only for the custom full-screen splash shown by `SplashActivity`.
+
+The approved icon source artwork is:
+
+```text
+artwork/snooze-icon-source.png
+941 x 1672 PNG
+```
+
+It preserves the untitled illustration for native splash and launcher icon generation.
 
 The preserved generated derivative is the native crop master:
 
@@ -32,20 +45,22 @@ Native crop geometry:
 600x600+230+470
 ```
 
-The crop is centered on the sleeping man's face, gray beard, blue-and-white nightcap, pillow edge, and readable yellow `zzz`. Larger test crops from roughly 650 to 900 pixels pulled the moon and alarm-clock edges back into the icon composition, so the original 600-pixel crop remains the largest useful crop for the approved simplified splash and launcher artwork.
+The crop is generated from `artwork/snooze-icon-source.png` and is centered on the sleeping man's face, gray beard, blue-and-white nightcap, pillow edge, and readable yellow `zzz`. Larger test crops from roughly 650 to 900 pixels pulled the moon and alarm-clock edges back into the icon composition, so the original 600-pixel crop remains the largest useful crop for the approved simplified native splash and launcher artwork.
 
 The native crop master is stored at its actual crop dimensions. The script does not preserve artificial 1152-pixel or 1024-pixel source masters. Android density outputs are composed directly from `snooze-native-crop-master.png` with one Lanczos resize per output.
 
 The splash and launcher foreground outputs use a circular image treatment on transparent canvases to avoid an obvious rectangular crop. Legacy launcher icons composite the circular image over the final deep-night background.
 
-The custom launch screen also packages a full-portrait derivative directly from the approved source:
+The custom launch screen also packages a full-portrait derivative directly from the titled root source:
 
 ```text
 app/src/main/res/drawable-nodpi/snooze_splash_full.png
 941 x 1672 PNG
 ```
 
-This file is used as Activity content after the brief native splash phase. It preserves the full source composition and is not generated from the crop master.
+This file is used as Activity content after the brief native splash phase. It preserves the full source composition, including the title, and is not generated from the crop master.
+
+The title must not appear in launcher icons, round icons, adaptive foregrounds, the native splash icon, or the monochrome themed icon. Launcher labels already provide the app name, and embedded title text would be illegible at small icon sizes.
 
 ## Generated Android Outputs
 

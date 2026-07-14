@@ -88,7 +88,7 @@ Instrumentation tests require a connected device or emulator. See [TESTING.md](T
 
 ## Visual assets
 
-The approved source artwork is `snooze-splash-base.png` at the repository root. Regenerate Android splash and launcher assets with:
+The approved titled splash artwork is `snooze-splash-base.png` at the repository root. Launcher icons intentionally use a separate untitled icon source. Regenerate Android visual assets with:
 
 ```bash
 make visual-assets

@@ -88,11 +88,13 @@ Use this checklist for later device testing. Do not mark items complete unless t
 
 Use this checklist for a later visual device pass. The current automated workflow validates that resources compile and resolve, but it does not replace device inspection.
 
-- Android 12+ native splash briefly shows the derived sleeping-face icon, then transitions to the full portrait launch screen.
-- Pre-Android 12 AndroidX splash briefly shows the derived icon, then transitions to the full portrait launch screen.
+- Android 12+ native splash briefly shows the derived sleeping-face icon, then transitions to the titled full portrait launch screen.
+- Pre-Android 12 AndroidX splash briefly shows the derived icon, then transitions to the titled full portrait launch screen.
+- The custom splash title is visible, not clipped, and not hidden by gesture or three-button navigation.
 - Splash remains visible for the existing routing delay and does not introduce a second full-screen animation.
 - Launcher icon foreground is not clipped under circle, rounded-square, squircle, and irregular OEM masks.
 - Legacy launcher icons have transparent edges where expected and no accidental white background.
+- No title text appears in launcher, round, adaptive foreground, native splash icon, or monochrome icon assets.
 - The themed monochrome icon is a simple one-color motif, not a grayscale copy of the illustration.
 - Light theme surfaces, cards, chips, dialogs, and buttons maintain readable contrast.
 - Dark theme avoids pure-black surfaces and keeps text, inputs, chips, and buttons readable.

@@ -4,7 +4,7 @@ Snooze Reviews uses a restrained sleep-oriented visual identity derived from the
 
 ## Source artwork
 
-The approved source artwork is kept at the repository root:
+The approved full-screen splash source artwork is kept at the repository root:
 
 ```text
 snooze-splash-base.png
@@ -16,13 +16,21 @@ Source dimensions and format:
 941 x 1672 PNG
 ```
 
-Do not overwrite, move, or modify this file in place.
+This root image includes the `Snooze Reviews` title and is used only for the custom full-screen splash. Do not move or modify it in place; replace it only with a newly approved titled splash source.
+
+Launcher and compact splash icons use a separate untitled source:
+
+```text
+artwork/snooze-icon-source.png
+```
+
+The title is intentionally excluded from launcher icons because it would be unreadable at small sizes and would duplicate the launcher label.
 
 Detailed provenance and generation notes live in [../artwork/README.md](../artwork/README.md).
 
 ## Native crop master
 
-Generated Android artwork starts from a native crop master:
+Generated native splash and launcher artwork starts from a native crop master:
 
 ```text
 artwork/generated/snooze-native-crop-master.png
@@ -35,7 +43,7 @@ Current crop geometry:
 600x600+230+470
 ```
 
-The crop focuses on the sleeping face, gray beard, blue-and-white nightcap, pillow edge, and readable yellow `zzz`. Larger tested crops reintroduced moon and alarm-clock edges, so the 600-pixel crop remains the selected composition.
+The crop is generated from `artwork/snooze-icon-source.png` and focuses on the sleeping face, gray beard, blue-and-white nightcap, pillow edge, and readable yellow `zzz`. Larger tested crops reintroduced moon and alarm-clock edges, so the 600-pixel crop remains the selected composition.
 
 Android density outputs are generated directly from this native crop master with one Lanczos resize per output. Enlarged Android density files are resource outputs, not source masters.
 
@@ -48,7 +56,7 @@ The native splash uses:
 - A solid deep-night background
 - A centered circular derived icon
 
-The custom splash screen uses the approved full portrait illustration packaged as:
+The custom splash screen uses the approved titled full portrait illustration packaged as:
 
 ```text
 app/src/main/res/drawable-nodpi/snooze_splash_full.png
@@ -66,7 +74,7 @@ Launcher assets include:
 - Round launcher PNGs
 - A one-color VectorDrawable monochrome icon for themed launchers
 
-The launcher icon uses the sleeping face/nightcap composition and does not include app-name text, the full portrait scene, the moon, or the alarm clock.
+The launcher icon uses the untitled sleeping face/nightcap composition and does not include app-name text, the full portrait scene, the moon, or the alarm clock.
 
 ## Palette and themes
 
@@ -98,7 +106,7 @@ or:
 
 ImageMagick 7 is required through the `magick` command. `pngcheck` and `oxipng` are used when installed but are optional.
 
-Generated source derivatives live under `artwork/generated/`. Android resource outputs live under `app/src/main/res/drawable-*` and `app/src/main/res/mipmap-*`.
+The asset script has two source inputs: `snooze-splash-base.png` for the custom full-screen splash and `artwork/snooze-icon-source.png` for native splash and launcher icon assets. Generated source derivatives live under `artwork/generated/`. Android resource outputs live under `app/src/main/res/drawable-*` and `app/src/main/res/mipmap-*`.
 
 ## Manual visual checks
 
@@ -106,6 +114,8 @@ Device review is still required for:
 
 - Android 12+ native splash-to-full-portrait transition
 - Pre-Android 12 AndroidX splash-to-full-portrait transition
+- Titled full splash visibility on narrow, typical, and large phone screens
+- Confirmation that no title text appears in launcher icons
 - Launcher masks from different OEM launchers
 - Themed monochrome icon presentation
 - Light and dark theme contrast

@@ -2,13 +2,16 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SOURCE_IMAGE="${ROOT_DIR}/snooze-splash-base.png"
+FULL_SPLASH_SOURCE="${ROOT_DIR}/snooze-splash-base.png"
+ICON_SOURCE="${ROOT_DIR}/artwork/snooze-icon-source.png"
 ARTWORK_DIR="${ROOT_DIR}/artwork/generated"
 RES_DIR="${ROOT_DIR}/app/src/main/res"
 WORK_DIR="$(mktemp -d)"
 
 CROP_GEOMETRY="600x600+230+470"
 NATIVE_CROP_SIZE=600
+EXPECTED_SOURCE_WIDTH=941
+EXPECTED_SOURCE_HEIGHT=1672
 SPLASH_BG="#102846"
 
 cleanup() {
@@ -23,9 +26,11 @@ require_tool() {
     fi
 }
 
-ensure_source() {
-    if [ ! -f "${SOURCE_IMAGE}" ]; then
-        printf "Missing source artwork: %s\n" "${SOURCE_IMAGE}" >&2
+ensure_file() {
+    local file="$1"
+    local label="$2"
+    if [ ! -f "${file}" ]; then
+        printf "Missing %s: %s\n" "${label}" "${file}" >&2
         exit 1
     fi
 }
@@ -49,10 +54,38 @@ validate_png() {
     fi
 }
 
+validate_source_png() {
+    local file="$1"
+    local label="$2"
+    local format width height colorspace depth
+    format="$(magick identify -format "%m" "${file}")"
+    width="$(magick identify -format "%w" "${file}")"
+    height="$(magick identify -format "%h" "${file}")"
+    colorspace="$(magick identify -format "%[colorspace]" "${file}")"
+    depth="$(magick identify -format "%z" "${file}")"
+    if [ "${format}" != "PNG" ]; then
+        printf "%s must be a PNG; got %s\n" "${label}" "${format}" >&2
+        exit 1
+    fi
+    if [ "${width}" -ne "${EXPECTED_SOURCE_WIDTH}" ] || [ "${height}" -ne "${EXPECTED_SOURCE_HEIGHT}" ]; then
+        printf "%s dimensions must be %sx%s; got %sx%s\n" \
+            "${label}" "${EXPECTED_SOURCE_WIDTH}" "${EXPECTED_SOURCE_HEIGHT}" "${width}" "${height}" >&2
+        exit 1
+    fi
+    if [ "${colorspace}" != "sRGB" ]; then
+        printf "%s must use sRGB colorspace; got %s\n" "${label}" "${colorspace}" >&2
+        exit 1
+    fi
+    if [ "${depth}" -ne 8 ]; then
+        printf "%s must be 8-bit; got %s-bit\n" "${label}" "${depth}" >&2
+        exit 1
+    fi
+}
+
 make_native_crop_master() {
     local output="$1"
 
-    magick "${SOURCE_IMAGE}" \
+    magick "${ICON_SOURCE}" \
         -crop "${CROP_GEOMETRY}" +repage \
         -strip -colorspace sRGB \
         "${output}"
@@ -61,7 +94,7 @@ make_native_crop_master() {
 make_full_splash() {
     local output="$1"
     mkdir -p "$(dirname "${output}")"
-    magick "${SOURCE_IMAGE}" \
+    magick "${FULL_SPLASH_SOURCE}" \
         -strip -colorspace sRGB \
         "${output}"
 }
@@ -156,20 +189,22 @@ make_legacy_icons() {
 
 main() {
     require_tool magick
-    ensure_source
+    ensure_file "${FULL_SPLASH_SOURCE}" "full splash source artwork"
+    ensure_file "${ICON_SOURCE}" "icon source artwork"
+    validate_source_png "${FULL_SPLASH_SOURCE}" "Full splash source"
+    validate_source_png "${ICON_SOURCE}" "Icon source"
 
-    local dimensions
-    dimensions="$(magick identify -format "%wx%h %m %[colorspace]" "${SOURCE_IMAGE}")"
-    printf "Source: %s\n" "${SOURCE_IMAGE}"
-    printf "Source details: %s\n" "${dimensions}"
+    local full_splash_dimensions icon_dimensions
+    full_splash_dimensions="$(magick identify -format "%wx%h %m %[colorspace] %[depth]-bit" "${FULL_SPLASH_SOURCE}")"
+    icon_dimensions="$(magick identify -format "%wx%h %m %[colorspace] %[depth]-bit" "${ICON_SOURCE}")"
+    printf "Full splash source: %s\n" "${FULL_SPLASH_SOURCE}"
+    printf "Full splash source details: %s\n" "${full_splash_dimensions}"
+    printf "Icon source: %s\n" "${ICON_SOURCE}"
+    printf "Icon source details: %s\n" "${icon_dimensions}"
 
     local source_width source_height
-    source_width="$(magick identify -format "%w" "${SOURCE_IMAGE}")"
-    source_height="$(magick identify -format "%h" "${SOURCE_IMAGE}")"
-    if [ "${source_width}" -lt 900 ] || [ "${source_height}" -lt 1200 ]; then
-        printf "Source artwork is smaller than expected: %sx%s\n" "${source_width}" "${source_height}" >&2
-        exit 1
-    fi
+    source_width="$(magick identify -format "%w" "${FULL_SPLASH_SOURCE}")"
+    source_height="$(magick identify -format "%h" "${FULL_SPLASH_SOURCE}")"
 
     mkdir -p "${ARTWORK_DIR}"
 
@@ -230,7 +265,9 @@ main() {
         printf "oxipng: not installed; skipped\n"
     fi
 
-    printf "\nGenerated visual assets from native crop master (%s):\n" "${CROP_GEOMETRY}"
+    printf "\nGenerated visual assets:\n"
+    printf "  Full custom splash from root titled source.\n"
+    printf "  Native icon crop master from untitled icon source (%s).\n" "${CROP_GEOMETRY}"
     find "${ARTWORK_DIR}" "${RES_DIR}" \
         \( -name 'snooze-native-crop-master.png' -o -name 'snooze_splash_full.png' -o -name 'snooze_splash_icon.png' -o -name 'ic_launcher*.png' \) \
         -type f | sort | sed "s#${ROOT_DIR}/#  #"
