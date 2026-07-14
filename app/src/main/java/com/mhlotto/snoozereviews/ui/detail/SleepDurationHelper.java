@@ -1,21 +1,15 @@
 package com.mhlotto.snoozereviews.ui.detail;
 
+import com.mhlotto.snoozereviews.domain.metrics.SleepDurationCalculator;
+
 public final class SleepDurationHelper {
-    public static final int MINUTES_PER_DAY = 1440;
+    public static final int MINUTES_PER_DAY = SleepDurationCalculator.MINUTES_PER_DAY;
 
     private SleepDurationHelper() {
     }
 
     public static Integer calculateDurationMinutes(Integer sleepMinute, Integer wakeMinute) {
-        if (sleepMinute == null || wakeMinute == null) {
-            return null;
-        }
-        validateMinute(sleepMinute);
-        validateMinute(wakeMinute);
-        if (wakeMinute >= sleepMinute) {
-            return wakeMinute - sleepMinute;
-        }
-        return (MINUTES_PER_DAY - sleepMinute) + wakeMinute;
+        return SleepDurationCalculator.calculateDurationMinutes(sleepMinute, wakeMinute);
     }
 
     public static String formatDurationMinutes(Integer durationMinutes) {
@@ -34,9 +28,4 @@ public final class SleepDurationHelper {
                 + " " + minutes + " " + (minutes == 1 ? "minute" : "minutes");
     }
 
-    private static void validateMinute(int minute) {
-        if (minute < 0 || minute > 1439) {
-            throw new IllegalArgumentException("minute must be between 0 and 1439");
-        }
-    }
 }

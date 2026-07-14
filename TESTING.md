@@ -1,6 +1,6 @@
 # Snooze Reviews Testing
 
-Feature behavior is summarized in [docs/FEATURES.md](docs/FEATURES.md). Backup behavior is documented in [docs/BACKUP_AND_RESTORE.md](docs/BACKUP_AND_RESTORE.md), and visual asset details are documented in [docs/VISUALS.md](docs/VISUALS.md).
+Feature behavior is summarized in [docs/FEATURES.md](docs/FEATURES.md). Backup behavior is documented in [docs/BACKUP_AND_RESTORE.md](docs/BACKUP_AND_RESTORE.md), scoring direction is documented in [docs/SCORING.md](docs/SCORING.md), and visual asset details are documented in [docs/VISUALS.md](docs/VISUALS.md).
 
 ## Automated Checks
 
@@ -21,6 +21,8 @@ Run instrumentation tests on a connected device or emulator when available:
 ```
 
 The current CI-style workflow compiles instrumentation tests but may defer device execution.
+
+Local unit tests also cover the pure Java domain layer for future statistics and scoring. That includes `SleepObservation`, repository-to-domain mapping, canonical duration calculation, derived metrics, score-result contracts, and a source guard that fails if `domain/` classes import Android, AndroidX, Room, or Material APIs.
 
 ## Manual Smoke Checklist
 

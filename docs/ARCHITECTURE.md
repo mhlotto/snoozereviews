@@ -25,10 +25,15 @@ com.mhlotto.snoozereviews.data.db
 com.mhlotto.snoozereviews.data.entity
 com.mhlotto.snoozereviews.data.location
 com.mhlotto.snoozereviews.data.tag
+com.mhlotto.snoozereviews.domain.metrics
+com.mhlotto.snoozereviews.domain.score
+com.mhlotto.snoozereviews.domain.sleep
 com.mhlotto.snoozereviews.ui
 ```
 
 Room entities live under `data.entity`, DAOs under `data.dao`, and `SnoozeReviewsDatabase` under `data.db`. Custom location helpers live under `data.location`; custom tag helpers live under `data.tag`. UI Activities and formatting helpers live under `ui` and feature-specific UI subpackages.
+
+The `domain` packages are pure Java and are intended for future statistics, scoring experiments, test fixtures, and reusable derived metrics. Domain classes do not import Android, AndroidX, Room, or Material packages.
 
 ## Activities
 
@@ -121,6 +126,40 @@ There is a unique index on `normalized_name`. Rows are soft-deactivated rather t
 - Unknown nonblank location and tag keys are preserved for forward compatibility.
 - Custom location keys use URL-safe Base64 without padding and start with `CUSTOM_B64:`.
 - Custom tag keys use URL-safe Base64 without padding and start with `CUSTOM_TAG_B64:`.
+
+## Domain model and derived metrics
+
+`SleepObservation` is the pure Java representation of one recorded night. It preserves nullable values, rating zero, midnight minute zero, stable location keys, and stable tag keys without resolving localized labels or depending on Room annotations.
+
+`SleepObservationMapper` is the current repository-to-domain boundary. It maps `SleepLogWithTags` results into immutable observations and defensively copies selected tag keys. Activities should not construct scoring observations field by field.
+
+`SleepDurationCalculator` is the canonical pure Java duration calculator:
+
+```text
+missing sleep or wake time -> null
+wake >= sleep             -> wake - sleep
+wake < sleep              -> (1440 - sleep) + wake
+```
+
+Equal times remain `0` minutes, matching existing app behavior. Invalid minute values throw `IllegalArgumentException`.
+
+`SleepMetricsCalculator` derives formula-neutral metrics from a `SleepObservation`, currently duration and normalized sleep/rested ratings. Rating normalization preserves the null-versus-zero distinction:
+
+```text
+null -> null
+0    -> 0.0
+5    -> 1.0
+```
+
+No overall score is calculated.
+
+## Scoring contract
+
+The `domain.score` package contains future-facing contracts only. `SleepScoreCalculator` defines the shape of a scoring algorithm without providing a production implementation.
+
+`SleepScoreResult` can represent either a scored result or insufficient data. It carries an algorithm ID, optional score, component breakdown, and limitation codes. Scores, when present, are constrained to `0` through `100`. Domain results use stable codes rather than localized UI prose.
+
+The current scoring direction is documented in [SCORING.md](SCORING.md). No score formula, score UI, Room field, or backup field exists yet.
 
 ## Transactions and constraints
 

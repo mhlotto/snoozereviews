@@ -101,6 +101,7 @@ ImageMagick 7 is required. See [docs/VISUALS.md](docs/VISUALS.md) and [artwork/R
 - [Features](docs/FEATURES.md)
 - [Architecture](docs/ARCHITECTURE.md)
 - [Backup and restore](docs/BACKUP_AND_RESTORE.md)
+- [Scoring design](docs/SCORING.md)
 - [Releasing](docs/RELEASING.md)
 - [Visual system](docs/VISUALS.md)
 - [Testing and manual validation](TESTING.md)
